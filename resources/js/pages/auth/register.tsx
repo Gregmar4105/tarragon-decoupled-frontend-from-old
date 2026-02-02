@@ -1,114 +1,171 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import InputError from '@/components/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import AuthLayout from '@/layouts/auth-layout';
 import { login } from '@/routes';
 import { store } from '@/routes/register';
+import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 
 export default function Register() {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
     return (
-        <AuthLayout
-            title="Create an account"
-            description="Enter your details below to create your account"
-        >
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 dark:bg-zinc-950">
             <Head title="Register" />
-            <Form
-                {...store.form()}
-                resetOnSuccess={['password', 'password_confirmation']}
-                disableWhileProcessing
-                className="flex flex-col gap-6"
-            >
-                {({ processing, errors }) => (
-                    <>
-                        <div className="grid gap-6">
-                            <div className="grid gap-2">
-                                <Label htmlFor="name">Name</Label>
-                                <Input
-                                    id="name"
-                                    type="text"
-                                    required
-                                    autoFocus
-                                    tabIndex={1}
-                                    autoComplete="name"
-                                    name="name"
-                                    placeholder="Full name"
-                                />
-                                <InputError
-                                    message={errors.name}
-                                    className="mt-2"
-                                />
-                            </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="email">Email address</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    required
-                                    tabIndex={2}
-                                    autoComplete="email"
-                                    name="email"
-                                    placeholder="email@example.com"
-                                />
-                                <InputError message={errors.email} />
-                            </div>
+            {/* Logo */}
+            <div className="flex flex-col items-center mb-8">
+                <div className="bg-blue-600 p-3 rounded-xl mb-3 shadow-lg shadow-blue-600/20">
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-6 h-6 text-white"
+                    >
+                        <path d="M6 20h0a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h0" />
+                        <path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" />
+                    </svg>
+                </div>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tarragon Manila</h1>
+                <p className="text-xs text-gray-500 uppercase tracking-wider mt-1 dark:text-gray-400">Luggage Storage Rentals</p>
+            </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password">Password</Label>
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    required
-                                    tabIndex={3}
-                                    autoComplete="new-password"
-                                    name="password"
-                                    placeholder="Password"
-                                />
-                                <InputError message={errors.password} />
-                            </div>
+            {/* Card */}
+            <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-sm border border-gray-100 p-8 dark:bg-zinc-900 dark:border-zinc-800">
+                <div className="text-center mb-8">
+                    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Account</h2>
+                    <p className="text-gray-500 mt-2 text-sm dark:text-gray-400">Join us today</p>
+                </div>
 
-                            <div className="grid gap-2">
-                                <Label htmlFor="password_confirmation">
-                                    Confirm password
-                                </Label>
-                                <Input
-                                    id="password_confirmation"
-                                    type="password"
-                                    required
-                                    tabIndex={4}
-                                    autoComplete="new-password"
-                                    name="password_confirmation"
-                                    placeholder="Confirm password"
-                                />
-                                <InputError
-                                    message={errors.password_confirmation}
-                                />
+                <Form
+                    {...store.form()}
+                    resetOnSuccess={['password', 'password_confirmation']}
+                    disableWhileProcessing
+                    className="flex flex-col gap-5"
+                >
+                    {({ processing, errors }) => (
+                        <>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="name" className="text-gray-600 font-medium text-sm dark:text-gray-300">Full Name</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                        <Input
+                                            id="name"
+                                            type="text"
+                                            name="name"
+                                            required
+                                            autoFocus
+                                            autoComplete="name"
+                                            placeholder="Enter your full name"
+                                            className="pl-10 h-11 border-gray-200 bg-gray-50/50 rounded-lg focus:bg-white transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:focus:bg-zinc-800"
+                                        />
+                                    </div>
+                                    <InputError message={errors.name} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="email" className="text-gray-600 font-medium text-sm dark:text-gray-300">Email Address</Label>
+                                    <div className="relative">
+                                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                        <Input
+                                            id="email"
+                                            type="email"
+                                            name="email"
+                                            required
+                                            autoComplete="email"
+                                            placeholder="Enter your email"
+                                            className="pl-10 h-11 border-gray-200 bg-gray-50/50 rounded-lg focus:bg-white transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:focus:bg-zinc-800"
+                                        />
+                                    </div>
+                                    <InputError message={errors.email} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="password" className="text-gray-600 font-medium text-sm dark:text-gray-300">Password</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                        <Input
+                                            id="password"
+                                            type={showPassword ? "text" : "password"}
+                                            name="password"
+                                            required
+                                            autoComplete="new-password"
+                                            placeholder="Create a password"
+                                            className="pl-10 pr-10 h-11 border-gray-200 bg-gray-50/50 rounded-lg focus:bg-white transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:focus:bg-zinc-800"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                    <InputError message={errors.password} />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor="password_confirmation" className="text-gray-600 font-medium text-sm dark:text-gray-300">Confirm Password</Label>
+                                    <div className="relative">
+                                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 dark:text-gray-500" />
+                                        <Input
+                                            id="password_confirmation"
+                                            type={showConfirmPassword ? "text" : "password"}
+                                            name="password_confirmation"
+                                            required
+                                            autoComplete="new-password"
+                                            placeholder="Confirm your password"
+                                            className="pl-10 pr-10 h-11 border-gray-200 bg-gray-50/50 rounded-lg focus:bg-white transition-colors dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:focus:bg-zinc-800"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                                        >
+                                            {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                    <InputError message={errors.password_confirmation} />
+                                </div>
                             </div>
 
                             <Button
                                 type="submit"
-                                className="mt-2 w-full"
-                                tabIndex={5}
-                                data-test="register-user-button"
+                                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base shadow-lg shadow-blue-600/20 dark:bg-blue-600 dark:hover:bg-blue-700"
+                                disabled={processing}
                             >
-                                {processing && <Spinner />}
-                                Create account
+                                {processing && <Spinner className="mr-2" />}
+                                Create Account
                             </Button>
-                        </div>
 
-                        <div className="text-center text-sm text-muted-foreground">
-                            Already have an account?{' '}
-                            <TextLink href={login()} tabIndex={6}>
-                                Log in
-                            </TextLink>
-                        </div>
-                    </>
-                )}
-            </Form>
-        </AuthLayout>
+                            <div className="relative my-2">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t border-gray-100 dark:border-zinc-800" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white px-2 text-gray-400 dark:bg-zinc-900 dark:text-gray-500">or</span>
+                                </div>
+                            </div>
+
+                            <div className="text-center text-sm">
+                                <span className="text-gray-500 dark:text-gray-400">Already have an account? </span>
+                                <Link href={login()} className="text-blue-600 hover:text-blue-700 font-medium dark:text-blue-500 dark:hover:text-blue-400">
+                                    Sign in
+                                </Link>
+                            </div>
+                        </>
+                    )}
+                </Form>
+            </div>
+        </div>
     );
 }
