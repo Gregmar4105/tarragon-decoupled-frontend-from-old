@@ -1,0 +1,102 @@
+flowchart TB
+    subgraph PUBLIC["Public Pages (No Auth Required)"]
+        HOME["🏠 Home Page\nWelcome, Hero Section\nBook Storage CTA"]
+        PRICING["💰 Pricing Page\nHourly/Daily/Long-term Rates"]
+        ABOUT["ℹ️ About Us\nMission, Location Info"]
+        TRACK["🔍 Track Booking\nEnter Booking ID/Email"]
+        SEARCH["📍 Search Locations\nMap View + Location List"]
+        CHECKOUT["🛒 Checkout\nCustomer Details + Cash Payment"]
+        CONFIRM["✅ Confirmation\nBooking Reference"]
+    end
+
+    subgraph AUTH["Authentication"]
+        LOGIN["🔐 Login\nEmail/Password"]
+        REGISTER["📝 Register\nName/Email/Password"]
+        FORGOT["❓ Forgot Password\nEmail Recovery"]
+        RESET["🔄 Reset Password\nNew Password"]
+        VERIFY["✉️ Email Verification"]
+        TWOFA["🔢 2FA Challenge\nEnter Code"]
+    end
+
+    subgraph ADMIN["Staff/Admin Dashboard (Auth Required)"]
+        DASH["📊 Dashboard\nStats, Revenue, Recent Bookings"]
+        BOOKINGS["📋 Bookings Management\nList, Search, Filter"]
+        BOOKING_VIEW["👁️ View Booking Details"]
+        BOOKING_CREATE["➕ Walk-in Booking\nCustomer + Baggage Details"]
+        TRANSACTIONS["💳 Transactions & Export\nPayment History, CSV Export"]
+        REPORTS["📈 Reports & Analytics\nBusiness Insights"]
+    end
+
+    subgraph SETTINGS["User Settings"]
+        PROFILE["👤 Profile Settings\nName, Email"]
+        PASSWORD["🔑 Change Password"]
+        TWOFA_SET["🔐 Two-Factor Setup"]
+        APPEARANCE["🎨 Appearance\nTheme Settings"]
+    end
+
+    %% Public Navigation Flow
+    HOME --> |"Book Now"| SEARCH
+    HOME --> |"View Rates"| PRICING
+    HOME --> |"Track Booking"| TRACK
+    HOME --> |"About"| ABOUT
+    HOME --> |"Login"| LOGIN
+    
+    SEARCH --> |"Select Location"| CHECKOUT
+    CHECKOUT --> |"Confirm Booking"| CONFIRM
+    
+    PRICING --> |"Book Hourly"| SEARCH
+    PRICING --> |"Book Daily"| SEARCH
+    PRICING --> |"Email Quote"| SEARCH
+    
+    TRACK --> |"View Status"| BOOKING_STATUS["Booking Status"]
+
+    %% Auth Flow
+    LOGIN --> |"Success"| DASH
+    LOGIN --> |"Forgot Password"| FORGOT
+    LOGIN --> |"Sign Up"| REGISTER
+    LOGIN --> |"2FA Enabled"| TWOFA
+    
+    REGISTER --> |"Success"| DASH
+    FORGOT --> |"Email Sent"| RESET
+    RESET --> |"Success"| LOGIN
+    TWOFA --> |"Verified"| DASH
+
+    %% Admin Navigation
+    DASH --> BOOKINGS
+    DASH --> TRANSACTIONS
+    DASH --> REPORTS
+    
+    BOOKINGS --> |"View"| BOOKING_VIEW
+    BOOKINGS --> |"Add Walk-in"| BOOKING_CREATE
+    BOOKINGS --> |"Scan QR"| CHECKIN["Check-in Process"]
+    
+    BOOKING_CREATE --> |"Confirm"| BOOKINGS
+    BOOKING_VIEW --> |"Check-in"| CHECKIN
+    BOOKING_VIEW --> |"Check-out"| CHECKOUT_PROC["Check-out Process"]
+    
+    CHECKIN --> |"Complete"| BOOKINGS
+    CHECKOUT_PROC --> |"Complete"| TRANSACTIONS
+
+    %% Settings Navigation
+    DASH --> |"User Menu"| PROFILE
+    PROFILE --> PASSWORD
+    PROFILE --> TWOFA_SET
+    PROFILE --> APPEARANCE
+
+    %% Return to Dashboard
+    TRANSACTIONS --> |"Back"| DASH
+    REPORTS --> |"Back"| DASH
+    PROFILE --> |"Back"| DASH
+
+    %% Styling
+    classDef public fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
+    classDef auth fill:#fff3e0,stroke:#ff9800,color:#e65100
+    classDef admin fill:#e8f5e9,stroke:#4caf50,color:#1b5e20
+    classDef settings fill:#f3e5f5,stroke:#9c27b0,color:#4a148c
+    classDef action fill:#ffebee,stroke:#f44336,color:#b71c1c
+    
+    class HOME,PRICING,ABOUT,TRACK,SEARCH,CHECKOUT,CONFIRM public
+    class LOGIN,REGISTER,FORGOT,RESET,VERIFY,TWOFA auth
+    class DASH,BOOKINGS,BOOKING_VIEW,BOOKING_CREATE,TRANSACTIONS,REPORTS admin
+    class PROFILE,PASSWORD,TWOFA_SET,APPEARANCE settings
+    class CHECKIN,CHECKOUT_PROC,BOOKING_STATUS action

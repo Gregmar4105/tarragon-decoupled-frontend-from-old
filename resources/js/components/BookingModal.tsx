@@ -1,33 +1,67 @@
 import { Button } from "@/components/ui/button";
+import { useCurrency } from "@/context/CurrencyContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Minus, Plus, Calendar } from "lucide-react";
-import { useState } from "react";
+import { Minus, Plus, Calendar, ArrowRight, ArrowLeft, CheckCircle, Package, User, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { router } from '@inertiajs/react';
 
 export default function BookingModal({ children }: { children: React.ReactNode }) {
+    const [step, setStep] = useState(1);
     const [counts, setCounts] = useState({ small: 0, medium: 1, large: 0 });
-    const [subtotal, setSubtotal] = useState(50.00); // Mock starting price
-
-    const updateCount = (type: keyof typeof counts, delta: number) => {
-        setCounts(prev => {
-            const newCount = Math.max(0, prev[type] + delta);
-            // Simple mock price update logic
-            const priceDelta = delta * (type === 'small' ? 5 : type === 'medium' ? 10 : 15);
-            setSubtotal(curr => Math.max(0, curr + priceDelta));
-            return { ...prev, [type]: newCount };
-        });
-    };
-
+    const [customer, setCustomer] = useState({ firstName: '', lastName: '', email: '', phone: '' });
     const [dates, setDates] = useState({
         dropoffDate: '',
         dropoffTime: '',
         pickupDate: '',
         pickupTime: ''
     });
+    const [subtotal, setSubtotal] = useState(0);
+
+    // Pricing Logic
+    const PRICES = { small: 5, medium: 10, large: 15 };
+    const { format, convert } = useCurrency();
+
+    useEffect(() => {
+        const total = (counts.small * PRICES.small) + (counts.medium * PRICES.medium) + (counts.large * PRICES.large);
+        setSubtotal(total);
+    }, [counts]);
+
+    const updateCount = (type: keyof typeof counts, delta: number) => {
+        setCounts(prev => ({ ...prev, [type]: Math.max(0, prev[type] + delta) }));
+    };
 
     const updateDate = (field: keyof typeof dates, value: string) => {
         setDates(prev => ({ ...prev, [field]: value }));
+    };
+
+    const updateCustomer = (field: keyof typeof customer, value: string) => {
+        setCustomer(prev => ({ ...prev, [field]: value }));
+    };
+
+    const nextStep = () => setStep(s => Math.min(3, s + 1));
+    const prevStep = () => setStep(s => Math.max(1, s - 1));
+
+    const handleBooking = () => {
+        // Mock generating a booking ID
+        const bookingId = "BK" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
+
+        // Save to localStorage
+        const booking = {
+            id: bookingId,
+            ...customer,
+            ...dates,
+            items: counts,
+            total: subtotal,
+            status: 'Pending',
+            createdAt: new Date().toISOString()
+        };
+
+        // In a real app, this would be an API call
+        // For now we just simulate success and redirect
+
+        router.visit(`/confirmation/${bookingId}`);
     };
 
     return (
@@ -35,167 +69,176 @@ export default function BookingModal({ children }: { children: React.ReactNode }
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="max-w-[950px] w-full sm:max-w-[950px] p-0 gap-0 overflow-hidden sm:rounded-2xl bg-white dark:bg-[#18181b] border-zinc-200 dark:border-zinc-800 transition-all duration-200">
-                <DialogHeader className="p-8 pb-2 border-b border-transparent">
-                    <DialogTitle className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Customer Booking</DialogTitle>
+            <DialogContent className="sm:max-w-[950px] w-full p-0 gap-0 overflow-hidden sm:rounded-2xl bg-white border-zinc-200 transition-all duration-200 max-h-[100dvh] sm:max-h-[85vh] flex flex-col">
+                <DialogHeader className="p-4 md:p-6 border-b border-gray-100 flex flex-row items-center justify-between shrink-0">
+                    <DialogTitle className="text-lg md:text-xl font-bold tracking-tight text-gray-900">
+                        {step === 1 ? "Select Dates" : step === 2 ? "Add Bags" : "Customer Details"}
+                    </DialogTitle>
+                    <div className="flex items-center gap-2 mr-2 md:mr-8">
+                        <div className={`h-2 w-2 rounded-full ${step >= 1 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                        <div className={`h-1 w-4 md:w-8 rounded-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-100'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                        <div className={`h-1 w-4 md:w-8 rounded-full ${step === 3 ? 'bg-blue-600' : 'bg-gray-100'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step === 3 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                    </div>
                 </DialogHeader>
 
-                <div className="flex flex-col lg:flex-row text-left">
+                <div className="flex flex-col lg:flex-row text-left flex-1 overflow-hidden">
                     {/* Left Column - Form */}
-                    <div className="flex-[1.4] p-8 pt-6 space-y-8">
-                        {/* Drop-off */}
-                        <div className="space-y-3">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Drop-off</label>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="relative flex-[1.5]">
-                                    <Input
-                                        type="date"
-                                        className="h-11 pl-11 rounded-xl border-gray-200 bg-white text-gray-900 focus-visible:ring-offset-0 focus-visible:ring-blue-500/20 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-gray-400 font-medium transition-all hover:border-blue-400/50"
-                                        value={dates.dropoffDate}
-                                        onChange={(e) => updateDate('dropoffDate', e.target.value)}
-                                    />
-                                    <Calendar className="absolute left-4 top-3 h-5 w-5 text-blue-500 pointer-events-none" />
-                                </div>
-                                <div className="flex-1">
-                                    <Select onValueChange={(v) => updateDate('dropoffTime', v)}>
-                                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white text-gray-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-0 focus:ring-offset-0 relative transition-all hover:border-blue-400/50">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="text-gray-400 dark:text-gray-500"><svg width="16" height="16" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 0C3.35786 0 0 3.35786 0 7.5C0 11.6421 3.35786 15 7.5 15C11.6421 15 15 11.6421 15 7.5C15 3.35786 11.6421 0 7.5 0ZM7.5 1.25C10.9518 1.25 13.75 4.04822 13.75 7.5C13.75 10.9518 10.9518 13.75 7.5 13.75C4.04822 13.75 1.25 10.9518 1.25 7.5C1.25 4.04822 4.04822 1.25 7.5 1.25ZM8.125 3.75C8.125 3.40482 7.84518 3.125 7.5 3.125C7.15482 3.125 6.875 3.40482 6.875 3.75V7.29289L4.65901 9.50888C4.41493 9.75296 4.41493 10.1487 4.65901 10.3928C4.90308 10.6368 5.29881 10.6368 5.54289 10.3928L8.125 7.81066V3.75Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg></span>
-                                                <SelectValue placeholder="Time (am)" />
-                                            </div>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="9am">9:00 AM</SelectItem>
-                                            <SelectItem value="10am">10:00 AM</SelectItem>
-                                            <SelectItem value="11am">11:00 AM</SelectItem>
-                                            <SelectItem value="12pm">12:00 PM</SelectItem>
-                                            <SelectItem value="1pm">1:00 PM</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="flex-1 p-4 md:p-8 overflow-y-auto">
 
-                        {/* Pick-up */}
-                        <div className="space-y-3">
-                            <label className="text-sm font-semibold text-gray-700 dark:text-gray-300 ml-1">Pick-up</label>
-                            <div className="flex flex-col sm:flex-row gap-4">
-                                <div className="relative flex-[1.5]">
-                                    <Input
-                                        type="date"
-                                        className="h-11 pl-11 rounded-xl border-gray-200 bg-white text-gray-900 focus-visible:ring-offset-0 focus-visible:ring-blue-500/20 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white dark:placeholder:text-gray-400 font-medium transition-all hover:border-blue-400/50"
-                                        value={dates.pickupDate}
-                                        onChange={(e) => updateDate('pickupDate', e.target.value)}
-                                    />
-                                    <Calendar className="absolute left-4 top-3 h-5 w-5 text-blue-500 pointer-events-none" />
+                        {/* Step 1: Dates */}
+                        {step === 1 && (
+                            <div className="space-y-6 md:space-y-8 animate-in slide-in-from-left-4 fade-in duration-300">
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-blue-600" /> Drop-off
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <Input type="date" value={dates.dropoffDate} onChange={(e) => updateDate('dropoffDate', e.target.value)} className="h-12 w-full" />
+                                        <Select onValueChange={(v) => updateDate('dropoffTime', v)}>
+                                            <SelectTrigger className="h-12 w-full"><SelectValue placeholder="Time" /></SelectTrigger>
+                                            <SelectContent>
+                                                {['9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm'].map(t => (
+                                                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
-                                <div className="flex-1">
-                                    <Select onValueChange={(v) => updateDate('pickupTime', v)}>
-                                        <SelectTrigger className="h-11 rounded-xl border-gray-200 bg-white text-gray-600 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-0 focus:ring-offset-0 relative transition-all hover:border-blue-400/50">
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="text-gray-400 dark:text-gray-500"><svg width="16" height="16" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.5 0C3.35786 0 0 3.35786 0 7.5C0 11.6421 3.35786 15 7.5 15C11.6421 15 15 11.6421 15 7.5C15 3.35786 11.6421 0 7.5 0ZM7.5 1.25C10.9518 1.25 13.75 4.04822 13.75 7.5C13.75 10.9518 10.9518 13.75 7.5 13.75C4.04822 13.75 1.25 10.9518 1.25 7.5C1.25 4.04822 4.04822 1.25 7.5 1.25ZM8.125 3.75C8.125 3.40482 7.84518 3.125 7.5 3.125C7.15482 3.125 6.875 3.40482 6.875 3.75V7.29289L4.65901 9.50888C4.41493 9.75296 4.41493 10.1487 4.65901 10.3928C4.90308 10.6368 5.29881 10.6368 5.54289 10.3928L8.125 7.81066V3.75Z" fill="currentColor" fillRule="evenodd" clipRule="evenodd"></path></svg></span>
-                                                <SelectValue placeholder="Time (am)" />
-                                            </div>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="9am">9:00 AM</SelectItem>
-                                            <SelectItem value="10am">10:00 AM</SelectItem>
-                                            <SelectItem value="11am">11:00 AM</SelectItem>
-                                            <SelectItem value="12pm">12:00 PM</SelectItem>
-                                            <SelectItem value="1pm">1:00 PM</SelectItem>
-                                        </SelectContent>
-                                    </Select>
+                                <div className="space-y-4">
+                                    <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                                        <Calendar className="w-4 h-4 text-blue-600" /> Pick-up
+                                    </h3>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <Input type="date" value={dates.pickupDate} onChange={(e) => updateDate('pickupDate', e.target.value)} className="h-12 w-full" />
+                                        <Select onValueChange={(v) => updateDate('pickupTime', v)}>
+                                            <SelectTrigger className="h-12 w-full"><SelectValue placeholder="Time" /></SelectTrigger>
+                                            <SelectContent>
+                                                {['9am', '10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm'].map(t => (
+                                                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        {/* Bag Counter */}
-                        <div>
-                            <label className="text-sm font-semibold text-gray-700 block mb-5 dark:text-gray-300 ml-1">Bag Counter</label>
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-6">
-                                <div>
-                                    <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold block mb-3 dark:text-gray-400">Small</span>
-                                    <div className="flex items-center gap-3">
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('small', -1)}>
-                                            <Minus className="h-4 w-4" />
-                                        </Button>
-                                        <span className="w-5 text-center text-lg font-semibold dark:text-white tabular-nums">{counts.small}</span>
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('small', 1)}>
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold block mb-3 dark:text-gray-400">Medium</span>
-                                    <div className="flex items-center gap-3">
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('medium', -1)}>
-                                            <Minus className="h-4 w-4" />
-                                        </Button>
-                                        <span className="w-5 text-center text-lg font-semibold dark:text-white tabular-nums">{counts.medium}</span>
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('medium', 1)}>
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <span className="text-xs uppercase tracking-wider text-gray-500 font-semibold block mb-3 dark:text-gray-400">Large</span>
-                                    <div className="flex items-center gap-3">
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('large', -1)}>
-                                            <Minus className="h-4 w-4" />
-                                        </Button>
-                                        <span className="w-5 text-center text-lg font-semibold dark:text-white tabular-nums">{counts.large}</span>
-                                        <Button variant="outline" size="icon" className="h-9 w-9 rounded-full border-gray-200 dark:border-zinc-700 dark:text-white dark:hover:bg-zinc-800 hover:bg-gray-50 hover:border-blue-400 transition-all shadow-sm" onClick={() => updateCount('large', 1)}>
-                                            <Plus className="h-4 w-4" />
-                                        </Button>
-                                    </div>
+                        {/* Step 2: Bags */}
+                        {step === 2 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                                <div className="space-y-4">
+                                    {[
+                                        { id: 'small', label: 'Small Bag', desc: 'Handbag, briefcase, backpack', price: PRICES.small },
+                                        { id: 'medium', label: 'Medium Bag', desc: 'Carry-on suitcase, large backpack', price: PRICES.medium },
+                                        { id: 'large', label: 'Large Bag', desc: 'Checked suitcase, equipment', price: PRICES.large }
+                                    ].map((item) => (
+                                        <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl hover:border-blue-300 transition-colors bg-white gap-4">
+                                            <div>
+                                                <p className="font-bold text-gray-900">{item.label}</p>
+                                                <p className="text-sm text-gray-500">{item.desc}</p>
+                                                <p className="text-blue-600 font-semibold mt-1">{format(item.price)}/day</p>
+                                            </div>
+                                            <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateCount(item.id as any, -1)}>
+                                                    <Minus className="h-3 w-3" />
+                                                </Button>
+                                                <span className="w-6 text-center font-bold">{counts[item.id as keyof typeof counts]}</span>
+                                                <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateCount(item.id as any, 1)}>
+                                                    <Plus className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Step 3: Customer */}
+                        {step === 3 && (
+                            <div className="space-y-6 animate-in slide-in-from-right-4 fade-in duration-300">
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">First Name</label>
+                                            <Input value={customer.firstName} onChange={e => updateCustomer('firstName', e.target.value)} placeholder="John" className="h-12" />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium">Last Name</label>
+                                            <Input value={customer.lastName} onChange={e => updateCustomer('lastName', e.target.value)} placeholder="Doe" className="h-12" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Email Address</label>
+                                        <Input value={customer.email} onChange={e => updateCustomer('email', e.target.value)} type="email" placeholder="john@example.com" className="h-12" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-medium">Phone Number</label>
+                                        <Input value={customer.phone} onChange={e => updateCustomer('phone', e.target.value)} type="tel" placeholder="+1 234 567 8900" className="h-12" />
+                                    </div>
+                                </div>
+
+                                <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm text-yellow-800 flex gap-2">
+                                    <ShieldCheck className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <p>Your booking includes {format(1500)} insurance coverage per bag. <strong>Cash payment only upon arrival.</strong></p>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Right Column - Order Summary */}
-                    <div className="w-full lg:w-[350px] bg-gray-50/50 dark:bg-zinc-900/30 border-t lg:border-t-0 lg:border-l border-dashed border-gray-200 dark:border-zinc-800 p-8 flex flex-col">
-                        <h3 className="text-lg font-semibold text-gray-900 mb-8 dark:text-white">Order Summary</h3>
-
-                        <div className="space-y-6 flex-1">
-                            <div className="flex justify-between items-start text-sm group">
-                                <span className="text-gray-500 font-medium dark:text-gray-400">Drop-off</span>
-                                <div className="text-right">
-                                    <span className="block font-semibold text-gray-900 dark:text-gray-200">
-                                        {dates.dropoffDate ? new Date(dates.dropoffDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'}
-                                    </span>
-                                    <span className="block text-gray-500 dark:text-gray-500 text-xs mt-0.5 min-h-[1rem]">
-                                        {dates.dropoffTime || ''}
+                    {/* Right Column - Summary */}
+                    <div className="w-full lg:w-[320px] bg-gray-50 border-t lg:border-t-0 lg:border-l border-gray-200 p-4 md:p-8 flex flex-col justify-between shrink-0">
+                        <div className="hidden lg:block">
+                            <h3 className="font-bold text-gray-900 mb-6">Booking Summary</h3>
+                            <div className="space-y-4 text-sm">
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Drop-off</span>
+                                    <span className="font-medium text-right">
+                                        {dates.dropoffDate ? new Date(dates.dropoffDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'} <br />
+                                        <span className="text-xs text-gray-400">{dates.dropoffTime}</span>
                                     </span>
                                 </div>
-                            </div>
-                            <div className="flex justify-between items-start text-sm group">
-                                <span className="text-gray-500 font-medium dark:text-gray-400">Pick-up</span>
-                                <div className="text-right">
-                                    <span className="block font-semibold text-gray-900 dark:text-gray-200">
-                                        {dates.pickupDate ? new Date(dates.pickupDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'}
-                                    </span>
-                                    <span className="block text-gray-500 dark:text-gray-500 text-xs mt-0.5 min-h-[1rem]">
-                                        {dates.pickupTime || ''}
+                                <div className="flex justify-between">
+                                    <span className="text-gray-500">Pick-up</span>
+                                    <span className="font-medium text-right">
+                                        {dates.pickupDate ? new Date(dates.pickupDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '-'} <br />
+                                        <span className="text-xs text-gray-400">{dates.pickupTime}</span>
                                     </span>
                                 </div>
-                            </div>
-                            <div className="flex justify-between items-center text-sm pt-4 border-t border-gray-200/50 border-dashed dark:border-zinc-800">
-                                <span className="text-gray-500 font-medium dark:text-gray-400">Total Bags</span>
-                                <span className="font-bold text-gray-900 text-base dark:text-gray-200">{counts.small + counts.medium + counts.large}</span>
+                                <div className="border-t border-gray-200 pt-4 flex justify-between">
+                                    <span className="text-gray-500">Total Bags</span>
+                                    <span className="font-bold">{counts.small + counts.medium + counts.large}</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div className="mt-10 pt-6 border-t border-gray-200/50 dark:border-zinc-800">
-                            <div className="flex justify-between items-end mb-6">
-                                <span className="font-bold text-lg text-gray-900 dark:text-white">Subtotal</span>
-                                <div className="text-right">
-                                    <span className="font-extrabold text-2xl text-gray-900 dark:text-white">${subtotal.toFixed(2)}</span>
+                        {/* Mobile Summary & Actions */}
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-end">
+                                <div className="flex flex-col">
+                                    <span className="font-bold text-gray-900">Total</span>
+                                    <span className="lg:hidden text-xs text-muted-foreground">{counts.small + counts.medium + counts.large} items</span>
                                 </div>
+                                <span className="text-2xl font-extrabold text-blue-600">{format(subtotal)}</span>
                             </div>
-                            <Button className="w-full bg-[#0066FF] hover:bg-blue-600 hover:shadow-lg hover:shadow-blue-500/30 h-12 rounded-xl text-md font-semibold transition-all duration-300 dark:bg-blue-600 dark:hover:bg-blue-500 dark:text-white">
-                                Book Now
-                            </Button>
+
+                            <div className="flex gap-3">
+                                {step > 1 && (
+                                    <Button variant="outline" onClick={prevStep} className="flex-1 h-12">
+                                        <ArrowLeft className="w-4 h-4 mr-2" /> Back
+                                    </Button>
+                                )}
+                                {step < 3 ? (
+                                    <Button onClick={nextStep} className="flex-[2] h-12 bg-blue-600 hover:bg-blue-700 font-bold">
+                                        Continue <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
+                                ) : (
+                                    <Button onClick={handleBooking} className="flex-[2] h-12 bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-200">
+                                        Confirm Booking
+                                    </Button>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
