@@ -4,7 +4,6 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 const data = [
     { name: 'Online Booking', value: 400 },
     { name: 'Walk-ins', value: 150 },
-    { name: 'Agency Partners', value: 50 },
 ];
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308'];

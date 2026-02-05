@@ -1,4 +1,7 @@
+import { useState } from 'react';
 import { Head } from '@inertiajs/react';
+import { DateRange } from 'react-day-picker';
+import { subDays } from 'date-fns';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +21,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Download, CalendarIcon } from 'lucide-react';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import { Download } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
 
 const breadcrumbs = [
@@ -35,6 +39,11 @@ const transactions = [
 
 export default function Transactions() {
     const { format } = useCurrency();
+    const [dateRange, setDateRange] = useState<DateRange | undefined>({
+        from: subDays(new Date(), 30),
+        to: new Date(),
+    });
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Transactions & Export" />
@@ -46,15 +55,10 @@ export default function Transactions() {
                     <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-end flex-wrap">
                         <div className="flex flex-col gap-2 flex-1 min-w-[300px]">
                             <span className="text-sm font-medium">Date Range</span>
-                            <div className="flex items-center gap-2">
-                                <Button variant="outline" className="w-full justify-start text-left font-normal text-muted-foreground">
-                                    <CalendarIcon className="mr-2 h-4 w-4" /> mm/dd/yyyy
-                                </Button>
-                                <span>-</span>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal text-muted-foreground">
-                                    <CalendarIcon className="mr-2 h-4 w-4" /> mm/dd/yyyy
-                                </Button>
-                            </div>
+                            <DateRangePicker
+                                dateRange={dateRange}
+                                onDateRangeChange={setDateRange}
+                            />
                         </div>
 
                         <div className="flex flex-col gap-2 w-full md:w-[200px]">

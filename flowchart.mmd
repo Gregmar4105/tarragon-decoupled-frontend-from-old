@@ -1,102 +1,101 @@
-flowchart TB
-    subgraph PUBLIC["Public Pages (No Auth Required)"]
-        HOME["🏠 Home Page\nWelcome, Hero Section\nBook Storage CTA"]
-        PRICING["💰 Pricing Page\nHourly/Daily/Long-term Rates"]
-        ABOUT["ℹ️ About Us\nMission, Location Info"]
-        TRACK["🔍 Track Booking\nEnter Booking ID/Email"]
-        SEARCH["📍 Search Locations\nMap View + Location List"]
-        CHECKOUT["🛒 Checkout\nCustomer Details + Cash Payment"]
-        CONFIRM["✅ Confirmation\nBooking Reference"]
-    end
-
-    subgraph AUTH["Authentication"]
-        LOGIN["🔐 Login\nEmail/Password"]
-        REGISTER["📝 Register\nName/Email/Password"]
-        FORGOT["❓ Forgot Password\nEmail Recovery"]
-        RESET["🔄 Reset Password\nNew Password"]
-        VERIFY["✉️ Email Verification"]
-        TWOFA["🔢 2FA Challenge\nEnter Code"]
-    end
-
-    subgraph ADMIN["Staff/Admin Dashboard (Auth Required)"]
-        DASH["📊 Dashboard\nStats, Revenue, Recent Bookings"]
-        BOOKINGS["📋 Bookings Management\nList, Search, Filter"]
-        BOOKING_VIEW["👁️ View Booking Details"]
-        BOOKING_CREATE["➕ Walk-in Booking\nCustomer + Baggage Details"]
-        TRANSACTIONS["💳 Transactions & Export\nPayment History, CSV Export"]
-        REPORTS["📈 Reports & Analytics\nBusiness Insights"]
-    end
-
-    subgraph SETTINGS["User Settings"]
-        PROFILE["👤 Profile Settings\nName, Email"]
-        PASSWORD["🔑 Change Password"]
-        TWOFA_SET["🔐 Two-Factor Setup"]
-        APPEARANCE["🎨 Appearance\nTheme Settings"]
-    end
-
-    %% Public Navigation Flow
-    HOME --> |"Book Now"| SEARCH
-    HOME --> |"View Rates"| PRICING
-    HOME --> |"Track Booking"| TRACK
-    HOME --> |"About"| ABOUT
-    HOME --> |"Login"| LOGIN
+flowchart TD
+    %% Start
+    START(["🚀 START"])
     
-    SEARCH --> |"Select Location"| CHECKOUT
-    CHECKOUT --> |"Confirm Booking"| CONFIRM
+    %% Initial Decision
+    START --> VISIT["User Visits Website"]
+    VISIT --> AUTH_CHECK{"Is User Authenticated?"}
     
-    PRICING --> |"Book Hourly"| SEARCH
-    PRICING --> |"Book Daily"| SEARCH
-    PRICING --> |"Email Quote"| SEARCH
+    %% Public User Path
+    AUTH_CHECK -->|"No"| PUBLIC_HOME["View Home Page"]
+    PUBLIC_HOME --> ACTION_CHOICE{"What does user want?"}
     
-    TRACK --> |"View Status"| BOOKING_STATUS["Booking Status"]
-
-    %% Auth Flow
-    LOGIN --> |"Success"| DASH
-    LOGIN --> |"Forgot Password"| FORGOT
-    LOGIN --> |"Sign Up"| REGISTER
-    LOGIN --> |"2FA Enabled"| TWOFA
+    ACTION_CHOICE -->|"Book Storage"| SEARCH_LOCATION["Search for Locations"]
+    ACTION_CHOICE -->|"View Pricing"| VIEW_PRICING["View Pricing Plans"]
+    ACTION_CHOICE -->|"Track Booking"| TRACK_BOOKING["Enter Booking ID/Email"]
+    ACTION_CHOICE -->|"Login"| LOGIN_PAGE["Go to Login Page"]
     
-    REGISTER --> |"Success"| DASH
-    FORGOT --> |"Email Sent"| RESET
-    RESET --> |"Success"| LOGIN
-    TWOFA --> |"Verified"| DASH
-
-    %% Admin Navigation
-    DASH --> BOOKINGS
-    DASH --> TRANSACTIONS
-    DASH --> REPORTS
+    %% Booking Flow
+    SEARCH_LOCATION --> SELECT_LOCATION["Select a Location"]
+    SELECT_LOCATION --> ENTER_DETAILS["Enter Customer Details"]
+    ENTER_DETAILS --> ENTER_BAGGAGE["Enter Baggage Details"]
+    ENTER_BAGGAGE --> REVIEW_BOOKING["Review Booking Summary"]
+    REVIEW_BOOKING --> CONFIRM_DECISION{"Confirm Booking?"}
     
-    BOOKINGS --> |"View"| BOOKING_VIEW
-    BOOKINGS --> |"Add Walk-in"| BOOKING_CREATE
-    BOOKINGS --> |"Scan QR"| CHECKIN["Check-in Process"]
+    CONFIRM_DECISION -->|"Yes"| BOOKING_CREATED["Booking Created"]
+    CONFIRM_DECISION -->|"No"| ENTER_DETAILS
     
-    BOOKING_CREATE --> |"Confirm"| BOOKINGS
-    BOOKING_VIEW --> |"Check-in"| CHECKIN
-    BOOKING_VIEW --> |"Check-out"| CHECKOUT_PROC["Check-out Process"]
+    BOOKING_CREATED --> SHOW_CONFIRMATION["Show Confirmation Page"]
+    SHOW_CONFIRMATION --> END_PUBLIC(["🏁 END"])
     
-    CHECKIN --> |"Complete"| BOOKINGS
-    CHECKOUT_PROC --> |"Complete"| TRANSACTIONS
-
-    %% Settings Navigation
-    DASH --> |"User Menu"| PROFILE
-    PROFILE --> PASSWORD
-    PROFILE --> TWOFA_SET
-    PROFILE --> APPEARANCE
-
-    %% Return to Dashboard
-    TRANSACTIONS --> |"Back"| DASH
-    REPORTS --> |"Back"| DASH
-    PROFILE --> |"Back"| DASH
-
+    %% Pricing Flow
+    VIEW_PRICING --> CHOOSE_PLAN{"Choose a Plan?"}
+    CHOOSE_PLAN -->|"Yes"| SEARCH_LOCATION
+    CHOOSE_PLAN -->|"No"| END_PUBLIC
+    
+    %% Track Booking Flow
+    TRACK_BOOKING --> BOOKING_FOUND{"Booking Found?"}
+    BOOKING_FOUND -->|"Yes"| SHOW_STATUS["Display Booking Status"]
+    BOOKING_FOUND -->|"No"| TRACK_ERROR["Show Error Message"]
+    SHOW_STATUS --> END_PUBLIC
+    TRACK_ERROR --> TRACK_BOOKING
+    
+    %% Login Flow
+    LOGIN_PAGE --> ENTER_CREDS["Enter Email & Password"]
+    ENTER_CREDS --> VALIDATE_CREDS{"Valid Credentials?"}
+    VALIDATE_CREDS -->|"No"| LOGIN_ERROR["Show Login Error"]
+    LOGIN_ERROR --> ENTER_CREDS
+    VALIDATE_CREDS -->|"Yes"| CHECK_2FA{"2FA Enabled?"}
+    CHECK_2FA -->|"Yes"| ENTER_2FA["Enter 2FA Code"]
+    ENTER_2FA --> VALIDATE_2FA{"Valid Code?"}
+    VALIDATE_2FA -->|"No"| ENTER_2FA
+    VALIDATE_2FA -->|"Yes"| DASHBOARD
+    CHECK_2FA -->|"No"| DASHBOARD
+    
+    %% Authenticated User Path
+    AUTH_CHECK -->|"Yes"| DASHBOARD["View Dashboard"]
+    DASHBOARD --> STAFF_ACTION{"Staff Action?"}
+    
+    STAFF_ACTION -->|"Manage Bookings"| VIEW_BOOKINGS["View Bookings List"]
+    STAFF_ACTION -->|"View Transactions"| VIEW_TRANSACTIONS["View Transaction History"]
+    STAFF_ACTION -->|"View Reports"| VIEW_REPORTS["View Analytics Reports"]
+    STAFF_ACTION -->|"Logout"| LOGOUT["Logout User"]
+    
+    %% Bookings Management
+    VIEW_BOOKINGS --> BOOKING_ACTION{"Booking Action?"}
+    BOOKING_ACTION -->|"Add Walk-in"| WALKIN_CREATE["Create Walk-in Booking"]
+    BOOKING_ACTION -->|"Check-in"| CHECKIN_PROCESS["Assign Tag Number"]
+    BOOKING_ACTION -->|"Check-out"| CHECKOUT_PROCESS["Process Payment"]
+    BOOKING_ACTION -->|"View Details"| VIEW_DETAILS["View Booking Details"]
+    
+    WALKIN_CREATE --> ENTER_CUSTOMER["Enter Customer Info"]
+    ENTER_CUSTOMER --> ENTER_BAGS["Enter Bag Quantities"]
+    ENTER_BAGS --> CONFIRM_WALKIN{"Confirm Walk-in?"}
+    CONFIRM_WALKIN -->|"Yes"| WALKIN_SAVED["Walk-in Booking Saved"]
+    CONFIRM_WALKIN -->|"No"| ENTER_CUSTOMER
+    WALKIN_SAVED --> VIEW_BOOKINGS
+    
+    CHECKIN_PROCESS --> TAKE_PHOTO["Take Bag Photo"]
+    TAKE_PHOTO --> CHECKIN_COMPLETE["Check-in Complete"]
+    CHECKIN_COMPLETE --> VIEW_BOOKINGS
+    
+    CHECKOUT_PROCESS --> COLLECT_PAYMENT{"Payment Collected?"}
+    COLLECT_PAYMENT -->|"Yes"| CHECKOUT_COMPLETE["Check-out Complete"]
+    COLLECT_PAYMENT -->|"No"| CHECKOUT_PROCESS
+    CHECKOUT_COMPLETE --> RECORD_TRANSACTION["Record Transaction"]
+    RECORD_TRANSACTION --> VIEW_BOOKINGS
+    
+    VIEW_DETAILS --> VIEW_BOOKINGS
+    VIEW_TRANSACTIONS --> DASHBOARD
+    VIEW_REPORTS --> DASHBOARD
+    LOGOUT --> END_STAFF(["🏁 END"])
+    
     %% Styling
-    classDef public fill:#e3f2fd,stroke:#1976d2,color:#0d47a1
-    classDef auth fill:#fff3e0,stroke:#ff9800,color:#e65100
-    classDef admin fill:#e8f5e9,stroke:#4caf50,color:#1b5e20
-    classDef settings fill:#f3e5f5,stroke:#9c27b0,color:#4a148c
-    classDef action fill:#ffebee,stroke:#f44336,color:#b71c1c
+    classDef startEnd fill:#f8cecc,stroke:#b85450,color:#000
+    classDef process fill:#fff2cc,stroke:#d6b656,color:#000
+    classDef decision fill:#ffe6cc,stroke:#d79b00,color:#000
+    classDef io fill:#dae8fc,stroke:#6c8ebf,color:#000
     
-    class HOME,PRICING,ABOUT,TRACK,SEARCH,CHECKOUT,CONFIRM public
-    class LOGIN,REGISTER,FORGOT,RESET,VERIFY,TWOFA auth
-    class DASH,BOOKINGS,BOOKING_VIEW,BOOKING_CREATE,TRANSACTIONS,REPORTS admin
-    class PROFILE,PASSWORD,TWOFA_SET,APPEARANCE settings
-    class CHECKIN,CHECKOUT_PROC,BOOKING_STATUS action
+    class START,END_PUBLIC,END_STAFF startEnd
+    class VISIT,PUBLIC_HOME,SEARCH_LOCATION,SELECT_LOCATION,ENTER_DETAILS,ENTER_BAGGAGE,REVIEW_BOOKING,BOOKING_CREATED,SHOW_CONFIRMATION,VIEW_PRICING,TRACK_BOOKING,SHOW_STATUS,TRACK_ERROR,LOGIN_PAGE,ENTER_CREDS,LOGIN_ERROR,ENTER_2FA,DASHBOARD,VIEW_BOOKINGS,VIEW_TRANSACTIONS,VIEW_REPORTS,LOGOUT,WALKIN_CREATE,ENTER_CUSTOMER,ENTER_BAGS,WALKIN_SAVED,CHECKIN_PROCESS,TAKE_PHOTO,CHECKIN_COMPLETE,CHECKOUT_PROCESS,CHECKOUT_COMPLETE,RECORD_TRANSACTION,VIEW_DETAILS process
+    class AUTH_CHECK,ACTION_CHOICE,CONFIRM_DECISION,CHOOSE_PLAN,BOOKING_FOUND,VALIDATE_CREDS,CHECK_2FA,VALIDATE_2FA,STAFF_ACTION,BOOKING_ACTION,CONFIRM_WALKIN,COLLECT_PAYMENT decision
