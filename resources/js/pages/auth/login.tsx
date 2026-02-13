@@ -128,24 +128,6 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                                 {processing && <Spinner className="mr-2" />}
                                 Sign In
                             </Button>
-
-                            <div className="relative my-2">
-                                <div className="absolute inset-0 flex items-center">
-                                    <span className="w-full border-t border-gray-100" />
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-white px-2 text-gray-400">or</span>
-                                </div>
-                            </div>
-
-                            {canRegister && (
-                                <div className="text-center text-sm">
-                                    <span className="text-gray-500">Don't have an account? </span>
-                                    <Link href={register()} className="text-blue-600 hover:text-blue-700 font-medium">
-                                        Sign up
-                                    </Link>
-                                </div>
-                            )}
                         </>
                     )}
                 </Form>

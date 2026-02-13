@@ -1,5 +1,6 @@
 import { Head, Link } from '@inertiajs/react';
 import Navbar from '@/components/Navbar';
+import ParticleBackground from '@/components/ParticleBackground';
 import Footer from '@/components/Footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,6 +37,7 @@ export default function Welcome() {
                         {/* Abstract Background Shapes */}
                         <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-blue-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
                         <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-[400px] h-[400px] bg-indigo-50 rounded-full blur-3xl opacity-50 pointer-events-none" />
+                        <ParticleBackground className="absolute inset-0 z-0" />
 
                         <div className="max-w-7xl mx-auto px-6 lg:px-12 pt-20 pb-24 relative z-10">
                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
