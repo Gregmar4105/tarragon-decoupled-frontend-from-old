@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import GuestChatbot from '@/components/GuestChatbot';
 
 export default function Footer() {
     return (
@@ -49,6 +50,9 @@ export default function Footer() {
                     <p>&copy; {new Date().getFullYear()} Tarragon Manila. All rights reserved.</p>
                 </div>
             </div>
+
+            {/* Render Chatbot */}
+            <GuestChatbot />
         </footer>
     );
 }
