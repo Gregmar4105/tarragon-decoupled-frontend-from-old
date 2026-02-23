@@ -44,24 +44,16 @@ export default function BookingModal({ children }: { children: React.ReactNode }
     const prevStep = () => setStep(s => Math.max(1, s - 1));
 
     const handleBooking = () => {
-        // Mock generating a booking ID
-        const bookingId = "BK" + Math.floor(Math.random() * 1000000).toString().padStart(6, '0');
-
-        // Save to localStorage
-        const booking = {
-            id: bookingId,
-            ...customer,
-            ...dates,
-            items: counts,
-            total: subtotal,
-            status: 'Pending',
-            createdAt: new Date().toISOString()
-        };
-
-        // In a real app, this would be an API call
-        // For now we just simulate success and redirect
-
-        router.visit(`/confirmation/${bookingId}`);
+        // Send actual payload to our new endpoint
+        router.post('/bookings', {
+            customer_name: `${customer.firstName} ${customer.lastName}`.trim(),
+            customer_email: customer.email,
+            customer_phone: customer.phone,
+            drop_off_time: `${dates.dropoffDate} ${dates.dropoffTime}`,
+            pick_up_time: `${dates.pickupDate} ${dates.pickupTime}`,
+            total_price: subtotal,
+            items: counts
+        });
     };
 
     return (

@@ -3,12 +3,15 @@
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\BookingController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
         'canRegister' => Features::enabled(Features::registration()),
     ]);
 })->name('home');
+
+Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
 
 Route::get('pricing', function () {
     return Inertia::render('pricing');
@@ -46,9 +49,13 @@ Route::get('bookings/{id}', function ($id) {
     return Inertia::render('bookings/show', ['bookingId' => $id]);
 })->middleware(['auth', 'verified'])->name('bookings.show');
 
-Route::get('bookings', function () {
-    return Inertia::render('bookings/index');
-})->middleware(['auth', 'verified'])->name('bookings');
+Route::put('bookings/{booking}', [BookingController::class, 'update'])
+    ->middleware(['auth', 'verified'])
+    ->name('bookings.update');
+
+Route::get('bookings', [BookingController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('bookings');
 
 Route::get('transactions', function () {
     return Inertia::render('transactions/index');

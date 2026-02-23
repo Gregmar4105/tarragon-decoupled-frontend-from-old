@@ -52,21 +52,34 @@ const breadcrumbs = [
     },
 ];
 
-const bookingsData = [
-    { id: "BK800000001", customer: "John Smith", contact: "+1 234-567-8900", bags: { small: 1, medium: 2, large: 0 }, amount: 63, status: "Booked", source: "Online", checkIn: "2026-01-28 10:00 AM", checkOut: "2026-01-28 06:00 PM" },
-    { id: "BK800000002", customer: "Sarah Johnson", contact: "+1 987-654-3210", bags: { small: 2, medium: 0, large: 0 }, amount: 45, status: "Checked-in", source: "Walk-in", checkIn: "2026-01-28 11:30 AM", checkOut: "2026-01-28 04:00 PM" },
-    { id: "BK800000003", customer: "Michael Brown", contact: "+1 555-123-4567", bags: { small: 0, medium: 3, large: 1 }, amount: 75, status: "Checked-out", source: "Online", checkIn: "2026-01-27 09:15 AM", checkOut: "2026-01-27 05:00 PM" },
-    { id: "BK800000004", customer: "Emily Davis", contact: "+1 123-456-7890", bags: { small: 1, medium: 1, large: 0 }, amount: 30, status: "Booked", source: "Online", checkIn: "2026-01-28 01:00 PM", checkOut: "2026-01-28 08:00 PM" },
-];
+interface Bags {
+    [key: string]: number;
+}
 
-export default function Bookings() {
+interface BookingInterface {
+    id: string;
+    customer: string;
+    contact: string;
+    bags: Bags;
+    amount: number;
+    status: string;
+    source: string;
+    checkIn: string;
+    checkOut: string;
+}
+
+interface Props {
+    initialBookings: BookingInterface[];
+}
+
+export default function Bookings({ initialBookings }: Props) {
     const { format } = useCurrency();
     const [search, setSearch] = useState('');
     const [view, setView] = useState<'list' | 'board'>('list');
 
     // Scanner State
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const [bookings, setBookings] = useState(bookingsData);
+    const [bookings, setBookings] = useState<BookingInterface[]>(initialBookings || []);
 
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
         setBookings(currentBookings =>
@@ -270,7 +283,9 @@ export default function Bookings() {
                         </Card>
                     </>
                 ) : (
-                    <BookingKanban />
+                    <BookingKanban bookings={bookings} onStatusChange={(id, status) => {
+                        setBookings(current => current.map(b => b.id === id ? { ...b, status } : b));
+                    }} />
                 )}
 
                 <BookingScanner
