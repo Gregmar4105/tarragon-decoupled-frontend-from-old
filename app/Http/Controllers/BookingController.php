@@ -63,10 +63,24 @@ class BookingController extends Controller
 
         try {
             DB::transaction(function () use ($validated, &$booking) {
-                // Temporary logic assuming branch/location/plan setup
-                // In a real scenario these would be fetched or provided by the request
-                $branchId = 1; // Default/mocked branch
-                $planId = 1; // Default/mocked plan
+                // Dynamic fallback for branch/plan setup
+                $branch = \Illuminate\Support\Facades\DB::table('branches')->first();
+                if (!$branch) {
+                    $branchId = \Illuminate\Support\Facades\DB::table('branches')->insertGetId([
+                        'name' => 'Main', 'slug' => 'main', 'address' => '123 Main', 'city' => 'MNL', 'zip' => '1000', 'country' => 'PH', 'capacity' => 100, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()
+                    ]);
+                } else {
+                    $branchId = $branch->id;
+                }
+
+                $plan = \Illuminate\Support\Facades\DB::table('plans')->first();
+                if (!$plan) {
+                    $planId = \Illuminate\Support\Facades\DB::table('plans')->insertGetId([
+                        'name' => 'Standard', 'duration_hours' => 24, 'price' => 100, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()
+                    ]);
+                } else {
+                    $planId = $plan->id;
+                }
 
                 $booking = Booking::create([
                     'branch_id' => $branchId,
