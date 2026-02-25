@@ -1,14 +1,13 @@
 
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-const data = [
-    { name: 'Online Booking', value: 400 },
-    { name: 'Walk-ins', value: 150 },
-];
+interface Props {
+    data: Array<{ name: string; value: number }>;
+}
 
 const COLORS = ['#2563eb', '#16a34a', '#eab308'];
 
-export function SourcePieChart() {
+export function SourcePieChart({ data }: Props) {
     return (
         <ResponsiveContainer width="100%" height={300}>
             <PieChart>

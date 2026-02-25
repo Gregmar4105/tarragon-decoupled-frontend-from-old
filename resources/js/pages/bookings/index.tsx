@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import AppLayout from '@/layouts/app-layout';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ import {
 } from "@/components/ui/tooltip";
 import BookingKanban from '@/components/BookingKanban';
 import BookingScanner from '@/components/BookingScanner';
+import { EditBookingModal } from '@/components/EditBookingModal';
 import { useCurrency } from '@/context/CurrencyContext';
 
 const breadcrumbs = [
@@ -79,7 +80,16 @@ export default function Bookings({ initialBookings }: Props) {
 
     // Scanner State
     const [isScannerOpen, setIsScannerOpen] = useState(false);
+
+    // Edit Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<BookingInterface | null>(null);
+
     const [bookings, setBookings] = useState<BookingInterface[]>(initialBookings || []);
+
+    useEffect(() => {
+        setBookings(initialBookings || []);
+    }, [initialBookings]);
 
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
         setBookings(currentBookings =>
@@ -251,7 +261,15 @@ export default function Bookings({ initialBookings }: Props) {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                                                        onClick={() => {
+                                                                            setSelectedBooking(booking);
+                                                                            setIsEditModalOpen(true);
+                                                                        }}
+                                                                    >
                                                                         <Pencil className="h-4 w-4" />
                                                                     </Button>
                                                                 </TooltipTrigger>
@@ -293,6 +311,12 @@ export default function Bookings({ initialBookings }: Props) {
                     onClose={() => setIsScannerOpen(false)}
                     bookings={bookings}
                     onCheckIn={handleCheckIn}
+                />
+
+                <EditBookingModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    booking={selectedBooking}
                 />
             </div>
         </AppLayout>

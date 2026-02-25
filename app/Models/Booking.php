@@ -23,6 +23,16 @@ class Booking extends Model
         'qr_code_path',
     ];
 
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'booking_reference';
+    }
+
     public function items()
     {
         return $this->hasMany(BookingItem::class);

@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\ReportController;
+use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
     return Inertia::render('welcome', [
@@ -29,9 +32,9 @@ Route::get('confirmation/{id?}', function ($id = null) {
     return Inertia::render('confirmation', ['bookingId' => $id]);
 })->name('confirmation');
 
-Route::get('dashboard', function () {
-    return Inertia::render('dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('dashboard', [DashboardController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('dashboard');
 
 Route::get('search', function () {
     return Inertia::render('search/index');
@@ -57,12 +60,12 @@ Route::get('bookings', [BookingController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('bookings');
 
-Route::get('transactions', function () {
-    return Inertia::render('transactions/index');
-})->middleware(['auth', 'verified'])->name('transactions');
+Route::get('transactions', [TransactionController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('transactions');
 
-Route::get('reports', function () {
-    return Inertia::render('reports/index');
-})->middleware(['auth', 'verified'])->name('reports');
+Route::get('reports', [ReportController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('reports');
 
 require __DIR__.'/settings.php';
