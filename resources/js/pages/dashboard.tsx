@@ -34,15 +34,26 @@ const getStats = (format: (n: number) => string) => [
     { title: "Avg. Duration", value: "4.5 hrs", icon: <Clock className="h-4 w-4" />, description: "Target: 5 hrs", trend: { value: 0, label: "same as yesterday", direction: "neutral" as const } },
 ];
 
-const recentBookings = [
-    { id: "800000001", customer: "Customer 1", status: "Completed", payment: "Cash", transactionId: "8000000001" },
-    { id: "800000002", customer: "Customer 2", status: "Stored", payment: "Cash", transactionId: "8000000002" },
-    { id: "800000003", customer: "Customer 3", status: "Pending", payment: "Cash", transactionId: "8000000003" },
-    { id: "800000004", customer: "Customer 4", status: "Stored", payment: "Cash", transactionId: "8000000004" },
-    { id: "800000005", customer: "Customer 5", status: "Completed", payment: "Cash", transactionId: "8000000005" },
-];
+interface RecentBooking {
+    id: string;
+    customer: string;
+    status: string;
+    payment: string;
+    transactionId: string;
+}
 
-export default function Dashboard() {
+interface RecentSale {
+    name: string;
+    email: string;
+    amount: number;
+}
+
+interface DashboardProps {
+    recentBookings: RecentBooking[];
+    recentSales: RecentSale[];
+}
+
+export default function Dashboard({ recentBookings = [], recentSales = [] }: DashboardProps) {
     const { format } = useCurrency();
     const [isLoading, setIsLoading] = useState(true);
 
@@ -99,27 +110,15 @@ export default function Dashboard() {
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-8">
-                                <div className="flex items-center">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium leading-none">Olivia Martin</p>
-                                        <p className="text-sm text-muted-foreground">olivia.martin@email.com</p>
+                                {recentSales.map((sale, i) => (
+                                    <div key={i} className="flex items-center">
+                                        <div className="space-y-1">
+                                            <p className="text-sm font-medium leading-none">{sale.name}</p>
+                                            <p className="text-sm text-muted-foreground">{sale.email}</p>
+                                        </div>
+                                        <div className="ml-auto font-medium">+{format(sale.amount)}</div>
                                     </div>
-                                    <div className="ml-auto font-medium">+{format(1999)}</div>
-                                </div>
-                                <div className="flex items-center">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium leading-none">Jackson Lee</p>
-                                        <p className="text-sm text-muted-foreground">jackson.lee@email.com</p>
-                                    </div>
-                                    <div className="ml-auto font-medium">+{format(39)}</div>
-                                </div>
-                                <div className="flex items-center">
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium leading-none">Isabella Nguyen</p>
-                                        <p className="text-sm text-muted-foreground">isabella.nguyen@email.com</p>
-                                    </div>
-                                    <div className="ml-auto font-medium">+{format(299)}</div>
-                                </div>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { router } from '@inertiajs/react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -127,10 +128,20 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
                 [destination.droppableId]: destCol
             });
 
+            // ... (in onDragEnd)
+
             if (onStatusChange) {
-                // Call back up to parent
+                // Call back up to parent (visually optimism)
                 const newStatusMapped = destination.droppableId === 'booked' ? 'Pending' : destination.droppableId.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
                 onStatusChange(removed.id, newStatusMapped);
+
+                // Make API call
+                router.put(`/bookings/${removed.id}`, {
+                    status: newStatusMapped.toLowerCase()
+                }, {
+                    preserveScroll: true,
+                    preserveState: true,
+                });
             }
 
         } else {

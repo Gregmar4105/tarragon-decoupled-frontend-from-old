@@ -10,7 +10,12 @@ import { SourcePieChart } from '@/components/SourcePieChart';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { Download } from 'lucide-react';
 
-export default function Reports() {
+interface Props {
+    dailyTrend: Array<{ name: string; bookings: number }>;
+    sourceDistribution: Array<{ name: string; value: number }>;
+}
+
+export default function Reports({ dailyTrend, sourceDistribution }: Props) {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subDays(new Date(), 30),
         to: new Date(),
@@ -52,7 +57,7 @@ export default function Reports() {
                             <CardDescription>Number of bags stored per day</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DailyBookingsChart />
+                            <DailyBookingsChart data={dailyTrend} />
                         </CardContent>
                     </Card>
 
@@ -62,7 +67,7 @@ export default function Reports() {
                             <CardDescription>Where your customers are coming from</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <SourcePieChart />
+                            <SourcePieChart data={sourceDistribution} />
                         </CardContent>
                     </Card>
                 </div>

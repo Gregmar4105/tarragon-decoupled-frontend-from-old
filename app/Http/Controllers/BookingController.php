@@ -142,15 +142,22 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking)
     {
         $validated = $request->validate([
-            'customer_name' => 'sometimes|required|string|max:255',
-            'customer_email' => 'sometimes|required|email|max:255',
+            'customer_name' => 'sometimes|string|max:255',
+            'customer_email' => 'sometimes|nullable|email|max:255',
             'customer_phone' => 'nullable|string|max:255',
             'drop_off_time' => 'sometimes|required|date',
             'pick_up_time' => 'sometimes|required|date',
-            'status' => 'sometimes|required|in:pending,confirmed,dropped_off,completed,cancelled',
+            'status' => 'sometimes|required|in:pending,confirmed,checked-in,checked-out,completed,cancelled',
             'payment_status' => 'sometimes|required|in:pending,paid,refunded',
             'total_price' => 'sometimes|required|numeric|min:0',
-            // Example of items validation if needed
+            
+            // Bags structure directly from frontend Edit functionality
+            'bags' => 'sometimes|array',
+            'bags.small' => 'sometimes|integer|min:0',
+            'bags.medium' => 'sometimes|integer|min:0',
+            'bags.large' => 'sometimes|integer|min:0',
+            
+            // For standard item updates if used in future
             'items' => 'sometimes|array',
             'items.*.id' => 'sometimes|exists:booking_items,id',
             'items.*.item_type' => 'required_with:items|string|max:255',
@@ -168,23 +175,51 @@ class BookingController extends Controller
                     $validated['pick_up_time'] = Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s');
                 }
 
-                // Update basic booking details
-                $booking->update(collect($validated)->except('items')->toArray());
+                // Map 'checked-in' and 'checked-out' to database-compatible strings if needed (or keep as is)
+                if (isset($validated['status'])) {
+                    $validated['status'] = strtolower($validated['status']);
+                }
 
-                // Update items if provided
+                // Update basic booking details except items/bags
+                $updateData = collect($validated)->except(['items', 'bags'])->toArray();
+                $booking->update($updateData);
+
+                // Update bags count if 'bags' is provided from UI
+                if (isset($validated['bags'])) {
+                    // Wipe existing items and recreate to reflect exact state
+                    $booking->items()->delete();
+                    
+                    $itemsToCreate = [];
+                    if (isset($validated['bags']['small']) && $validated['bags']['small'] > 0) {
+                        $itemsToCreate[] = ['item_type' => 'Small Bag', 'quantity' => $validated['bags']['small']];
+                    }
+                    if (isset($validated['bags']['medium']) && $validated['bags']['medium'] > 0) {
+                        $itemsToCreate[] = ['item_type' => 'Medium Bag', 'quantity' => $validated['bags']['medium']];
+                    }
+                    if (isset($validated['bags']['large']) && $validated['bags']['large'] > 0) {
+                        $itemsToCreate[] = ['item_type' => 'Large Bag', 'quantity' => $validated['bags']['large']];
+                    }
+
+                    if (!empty($itemsToCreate)) {
+                        $booking->items()->createMany($itemsToCreate);
+                    }
+                }
+
+                // Update items if 'items' array is explicitly provided (fallback/alternative)
                 if (isset($validated['items'])) {
-                    // This is a simple logic. You might need to adjust based on expected behavior
-                    // e.g., deleting omited items, creating new ones, or just updating existing ones.
+                    $incomingIds = collect($validated['items'])->pluck('id')->filter()->toArray();
+                    
+                    // Delete removed items
+                    $booking->items()->whereNotIn('id', $incomingIds)->delete();
+
                     foreach ($validated['items'] as $itemData) {
                         if (isset($itemData['id'])) {
-                            // Update existing item
                             $booking->items()->where('id', $itemData['id'])->update([
                                 'item_type' => $itemData['item_type'],
                                 'quantity' => $itemData['quantity'],
                                 'description' => $itemData['description'] ?? null,
                             ]);
                         } else {
-                            // Create new item
                             $booking->items()->create([
                                 'item_type' => $itemData['item_type'],
                                 'quantity' => $itemData['quantity'],
@@ -193,13 +228,21 @@ class BookingController extends Controller
                         }
                     }
                 }
+
+                // Update Total Price in Transaction if Total Price changed
+                if (isset($validated['total_price'])) {
+                    $transaction = $booking->transactions()->first();
+                    if ($transaction) {
+                        $transaction->update(['amount' => $validated['total_price']]);
+                    }
+                }
             });
 
-            // Redirect back with success message (or return JSON if preferred by frontend)
+            // Redirect back or output JSON based on Inertia
             return back()->with('success', 'Booking updated successfully.');
         } catch (\Exception $e) {
             Log::error('Error updating booking: ' . $e->getMessage());
-            return back()->with('error', 'Failed to update booking. Please try again.');
+            return back()->withErrors(['message' => 'Failed to update booking. Please try again.']);
         }
     }
 }

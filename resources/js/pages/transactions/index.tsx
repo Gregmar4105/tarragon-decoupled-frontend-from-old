@@ -32,17 +32,39 @@ const breadcrumbs = [
     },
 ];
 
-const transactions = [
-    { id: "800000001", date: "01/28 10:00 AM", customer: "John Smith", source: "Online", bookingId: "BK800000001", amount: 63, method: "Cash", status: "Completed" },
-    { id: "800000002", date: "01/28 09:00 AM", customer: "Emma Johnson", source: "Walk-in", bookingId: "BK800000002", amount: 20, method: "Cash", status: "Completed" },
-];
+interface TransactionData {
+    id: string;
+    date: string;
+    customer: string;
+    source: string;
+    bookingId: string;
+    amount: number;
+    method: string;
+    status: string;
+}
 
-export default function Transactions() {
+interface StatsData {
+    totalRevenue: number;
+    totalTransactions: number;
+    averageTransaction: number;
+}
+
+interface Props {
+    initialTransactions: TransactionData[];
+    stats: StatsData;
+}
+
+export default function Transactions({ initialTransactions, stats }: Props) {
     const { format } = useCurrency();
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subDays(new Date(), 30),
         to: new Date(),
     });
+
+    // Provide default fallback values if stats are missing
+    const totalRevenue = stats?.totalRevenue || 0;
+    const totalTransactions = stats?.totalTransactions || 0;
+    const averageTransaction = stats?.averageTransaction || 0;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -100,21 +122,21 @@ export default function Transactions() {
                     <Card>
                         <CardContent className="p-4">
                             <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
-                            <div className="text-2xl font-bold mt-1">{format(350)}</div>
-                            <span className="text-xs text-green-600">↑ 12% from last period</span>
+                            <div className="text-2xl font-bold mt-1">{format(totalRevenue)}</div>
+                            <span className="text-xs text-green-600">↑ Up to date</span>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <span className="text-sm font-medium text-muted-foreground">Total Transactions</span>
-                            <div className="text-2xl font-bold mt-1">7</div>
-                            <span className="text-xs text-muted-foreground">Last 7 days</span>
+                            <div className="text-2xl font-bold mt-1">{totalTransactions}</div>
+                            <span className="text-xs text-muted-foreground">All time</span>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-4">
                             <span className="text-sm font-medium text-muted-foreground">Average Transaction</span>
-                            <div className="text-2xl font-bold mt-1">{format(50)}</div>
+                            <div className="text-2xl font-bold mt-1">{format(averageTransaction)}</div>
                             <span className="text-xs text-muted-foreground">Per booking</span>
                         </CardContent>
                     </Card>
@@ -137,7 +159,7 @@ export default function Transactions() {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                {transactions.map((txn) => (
+                                {initialTransactions.map((txn) => (
                                     <TableRow key={txn.id}>
                                         <TableCell className="font-medium">{txn.id}</TableCell>
                                         <TableCell>{txn.date}</TableCell>
