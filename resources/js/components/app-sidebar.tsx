@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, LayoutDashboard, Calendar, CreditCard, BarChart3, PlusCircle } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, LayoutDashboard, Calendar, CreditCard, BarChart3, PlusCircle, Tag } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -31,6 +31,11 @@ const mainNavItems: NavItem[] = [
         title: 'Transactions & Export',
         href: '/transactions',
         icon: CreditCard,
+    },
+    {
+        title: 'Pricing Plans',
+        href: '/plans',
+        icon: Tag,
     },
     {
         title: 'Reports',

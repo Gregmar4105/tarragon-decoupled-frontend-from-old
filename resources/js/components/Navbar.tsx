@@ -1,9 +1,9 @@
 import { Link, usePage } from '@inertiajs/react';
-import { Button } from '@/components/ui/button';
-import BookingModal from '@/components/BookingModal';
 import { Share, User, Luggage, ArrowRightLeft } from 'lucide-react';
-import { login } from '@/routes';
+import BookingModal from '@/components/BookingModal';
+import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/context/CurrencyContext';
+import { login } from '@/routes';
 import NotificationBell from './NotificationBell';
 
 function CurrencyToggle() {

@@ -1,15 +1,19 @@
+import { router, usePage } from '@inertiajs/react';
+import { Minus, Plus, Calendar, ArrowRight, ArrowLeft, CheckCircle, Package, User, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useCurrency } from "@/context/CurrencyContext";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Minus, Plus, Calendar, ArrowRight, ArrowLeft, CheckCircle, Package, User, ShieldCheck } from "lucide-react";
-import { useState, useEffect } from "react";
-import { router } from '@inertiajs/react';
+import { useCurrency } from "@/context/CurrencyContext";
 
 export default function BookingModal({ children }: { children: React.ReactNode }) {
+    const { props } = usePage() as any;
+    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 20 }; // Fallback
+    const { format, convert } = useCurrency();
+
     const [step, setStep] = useState(1);
-    const [counts, setCounts] = useState({ small: 0, medium: 1, large: 0 });
+    const [counts, setCounts] = useState({ small: 0, medium: 1, large: 0, plus: 0 });
     const [customer, setCustomer] = useState({ firstName: '', lastName: '', email: '', phone: '' });
     const [dates, setDates] = useState({
         dropoffDate: '',
@@ -19,14 +23,47 @@ export default function BookingModal({ children }: { children: React.ReactNode }
     });
     const [subtotal, setSubtotal] = useState(0);
 
-    // Pricing Logic
-    const PRICES = { small: 5, medium: 10, large: 15 };
-    const { format, convert } = useCurrency();
-
     useEffect(() => {
-        const total = (counts.small * PRICES.small) + (counts.medium * PRICES.medium) + (counts.large * PRICES.large);
-        setSubtotal(total);
-    }, [counts]);
+        if (!dates.dropoffDate || !dates.pickupDate) {
+            setSubtotal(0);
+            return;
+        }
+
+        const parseTime = (dateStr: string, timeStr: string) => {
+            const date = new Date(dateStr);
+            if (!timeStr) return date.getTime();
+
+            const [time, modifier] = timeStr.split(/(am|pm)/i);
+            let hours = parseInt(time, 10);
+
+            if (hours === 12) {
+                hours = modifier.toLowerCase() === 'am' ? 0 : 12;
+            } else if (modifier.toLowerCase() === 'pm') {
+                hours += 12;
+            }
+
+            date.setHours(hours, 0, 0, 0);
+            return date.getTime();
+        };
+
+        const start = parseTime(dates.dropoffDate, dates.dropoffTime);
+        const end = parseTime(dates.pickupDate, dates.pickupTime);
+
+        if (start >= end || isNaN(start) || isNaN(end)) {
+            setSubtotal(0);
+            return;
+        }
+
+        const hours = Math.ceil((end - start) / (1000 * 60 * 60));
+        const dailyRatePeriods = Math.ceil(hours / 24) || 1;
+
+        const baseRate = (counts.small * (PRICES.small || 10)) +
+            (counts.medium * (PRICES.medium || 15)) +
+            (counts.large * (PRICES.large || 20)) +
+            (counts.plus * (PRICES.plus || 25));
+
+        setSubtotal(baseRate * dailyRatePeriods);
+    }, [counts, PRICES, dates]);
 
     const updateCount = (type: keyof typeof counts, delta: number) => {
         setCounts(prev => ({ ...prev, [type]: Math.max(0, prev[type] + delta) }));
@@ -124,7 +161,8 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                     {[
                                         { id: 'small', label: 'Small Bag', desc: 'Handbag, briefcase, backpack', price: PRICES.small },
                                         { id: 'medium', label: 'Medium Bag', desc: 'Carry-on suitcase, large backpack', price: PRICES.medium },
-                                        { id: 'large', label: 'Large Bag', desc: 'Checked suitcase, equipment', price: PRICES.large }
+                                        { id: 'large', label: 'Large Bag', desc: 'Checked suitcase, equipment', price: PRICES.large },
+                                        { id: 'plus', label: 'Plus Size', desc: 'Surfboard, bicycle, golf clubs', price: PRICES.plus }
                                     ].map((item) => (
                                         <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl hover:border-blue-300 transition-colors bg-white gap-4">
                                             <div>
@@ -200,7 +238,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                 </div>
                                 <div className="border-t border-gray-200 pt-4 flex justify-between">
                                     <span className="text-gray-500">Total Bags</span>
-                                    <span className="font-bold">{counts.small + counts.medium + counts.large}</span>
+                                    <span className="font-bold">{counts.small + counts.medium + counts.large + counts.plus}</span>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +248,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                             <div className="flex justify-between items-end">
                                 <div className="flex flex-col">
                                     <span className="font-bold text-gray-900">Total</span>
-                                    <span className="lg:hidden text-xs text-muted-foreground">{counts.small + counts.medium + counts.large} items</span>
+                                    <span className="lg:hidden text-xs text-muted-foreground">{counts.small + counts.medium + counts.large + counts.plus} items</span>
                                 </div>
                                 <span className="text-2xl font-extrabold text-blue-600">{format(subtotal)}</span>
                             </div>

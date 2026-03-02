@@ -16,8 +16,11 @@ Route::get('/', function () {
 
 Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
 
-Route::get('pricing', function () {
-    return Inertia::render('pricing');
+Route::get('/pricing', function () {
+    $plans = \App\Models\Plan::where('is_active', true)->get();
+    return Inertia::render('pricing', [
+        'plans' => $plans
+    ]);
 })->name('pricing');
 
 Route::get('about', function () {
@@ -45,16 +48,37 @@ Route::get('checkout', function () {
 })->name('checkout');
 
 Route::get('bookings/create', function () {
-    return Inertia::render('bookings/create');
+    $plan = \App\Models\Plan::where('is_active', true)->first();
+    $pricing = $plan ? [
+        'small' => (float) $plan->price_small,
+        'medium' => (float) $plan->price_medium,
+        'large' => (float) $plan->price_large,
+        'plus' => (float) $plan->price_plus,
+    ] : ['small' => 10, 'medium' => 15, 'large' => 20, 'plus' => 25];
+    return Inertia::render('bookings/create', ['pricing' => $pricing]);
 })->middleware(['auth', 'verified'])->name('bookings.create');
 
-Route::get('bookings/{id}', function ($id) {
-    return Inertia::render('bookings/show', ['bookingId' => $id]);
-})->middleware(['auth', 'verified'])->name('bookings.show');
+Route::post('notifications/{id}/read', function ($id) {
+    auth()->user()->unreadNotifications->where('id', $id)->markAsRead();
+    return back();
+})->middleware(['auth', 'verified'])->name('notifications.read');
+
+Route::post('notifications/read-all', function () {
+    auth()->user()->unreadNotifications->markAsRead();
+    return back();
+})->middleware(['auth', 'verified'])->name('notifications.readAll');
+
+Route::get('bookings/{booking}', [BookingController::class, 'show'])
+    ->middleware(['auth', 'verified'])
+    ->name('bookings.show');
 
 Route::put('bookings/{booking}', [BookingController::class, 'update'])
     ->middleware(['auth', 'verified'])
     ->name('bookings.update');
+
+Route::resource('plans', \App\Http\Controllers\PlanController::class)
+    ->only(['index', 'store', 'update', 'destroy'])
+    ->middleware(['auth', 'verified']);
 
 Route::get('bookings', [BookingController::class, 'index'])
     ->middleware(['auth', 'verified'])
