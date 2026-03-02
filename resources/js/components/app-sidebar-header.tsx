@@ -1,8 +1,8 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import CurrencyToggle from '@/components/CurrencyToggle';
+import NotificationBell from '@/components/NotificationBell';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType } from '@/types';
-import NotificationBell from '@/components/NotificationBell';
-import CurrencyToggle from '@/components/CurrencyToggle';
 
 export function AppSidebarHeader({
     breadcrumbs = [],

@@ -1,14 +1,14 @@
-import { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { DateRange } from 'react-day-picker';
 import { format, subDays } from 'date-fns';
-import AppLayout from '@/layouts/app-layout';
+import { Download } from 'lucide-react';
+import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
+import { DailyBookingsChart } from '@/components/DailyBookingsChart';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import { SourcePieChart } from '@/components/SourcePieChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DailyBookingsChart } from '@/components/DailyBookingsChart';
-import { SourcePieChart } from '@/components/SourcePieChart';
-import { DateRangePicker } from '@/components/DateRangePicker';
-import { Download } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
 
 interface Props {
     dailyTrend: Array<{ name: string; bookings: number }>;

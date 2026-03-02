@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { CheckCircle, AlertCircle, ScanLine, X, RefreshCw } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { StatusBadge } from '@/components/status-badge';
-import { CheckCircle, AlertCircle, ScanLine, X, RefreshCw } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
 
 interface Booking {

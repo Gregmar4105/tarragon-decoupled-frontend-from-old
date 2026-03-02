@@ -1,9 +1,9 @@
 import { Head, Link } from '@inertiajs/react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { CheckCircle, MapPin, Calendar, Package, Printer, Share2, ArrowRight } from 'lucide-react';
 import QRCode from "react-qr-code";
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
 import { useCurrency } from '@/context/CurrencyContext';
 
 export default function Confirmation({ bookingId }: { bookingId?: string }) {

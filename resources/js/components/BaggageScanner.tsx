@@ -1,7 +1,7 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, RefreshCw, Smartphone, ScanLine, X } from 'lucide-react';
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
-import { Camera, RefreshCw, Smartphone, ScanLine, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 export default function BaggageScanner() {
     const [hasPermission, setHasPermission] = useState(false);

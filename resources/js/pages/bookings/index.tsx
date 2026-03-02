@@ -1,25 +1,4 @@
-import { useState, useEffect } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from '@/components/ui/table';
-import { StatusBadge } from '@/components/status-badge';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import {
     Search,
     Plus,
@@ -35,16 +14,37 @@ import {
     Pencil,
     Trash2
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import BookingKanban from '@/components/BookingKanban';
+import BookingScanner from '@/components/BookingScanner';
+import { EditBookingModal } from '@/components/EditBookingModal';
+import { StatusBadge } from '@/components/status-badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from '@/components/ui/table';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import BookingKanban from '@/components/BookingKanban';
-import BookingScanner from '@/components/BookingScanner';
-import { EditBookingModal } from '@/components/EditBookingModal';
 import { useCurrency } from '@/context/CurrencyContext';
+import AppLayout from '@/layouts/app-layout';
 
 const breadcrumbs = [
     {

@@ -1,12 +1,11 @@
 import { Head } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { dashboard } from '@/routes';
-import type { BreadcrumbItem } from '@/types';
-import { StatsCard } from '@/components/stats-card';
-import { RevenueChart } from '@/components/RevenueChart';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Luggage, ScanBarcode, Download, Banknote, UserCheck, Clock, ArrowUpRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { RevenueChart } from '@/components/RevenueChart';
+import { StatsCard } from '@/components/stats-card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
     Table,
     TableBody,
@@ -15,9 +14,10 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Luggage, ScanBarcode, Download, Banknote, UserCheck, Clock, ArrowUpRight } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
+import AppLayout from '@/layouts/app-layout';
+import { dashboard } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -48,12 +48,20 @@ interface RecentSale {
     amount: number;
 }
 
+interface DashboardStats {
+    activeBags: { value: number; capacity: number; trend: number; };
+    revenue: { value: number; avgPerBag: number; trend: number; };
+    checkins: { value: number; pending: number; trend: number; };
+    duration: { value: number; };
+}
+
 interface DashboardProps {
     recentBookings: RecentBooking[];
     recentSales: RecentSale[];
+    stats: DashboardStats;
 }
 
-export default function Dashboard({ recentBookings = [], recentSales = [] }: DashboardProps) {
+export default function Dashboard({ recentBookings = [], recentSales = [], stats }: DashboardProps) {
     const { format } = useCurrency();
     const [isLoading, setIsLoading] = useState(true);
 
@@ -61,6 +69,37 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
         const timer = setTimeout(() => setIsLoading(false), 1000); // Mock loading delay
         return () => clearTimeout(timer);
     }, []);
+
+    const statCards = stats ? [
+        {
+            title: "Active Bags",
+            value: stats.activeBags.value,
+            icon: <Luggage className="h-4 w-4" />,
+            description: `Capacity: ${stats.activeBags.capacity}`,
+            trend: { value: Math.abs(stats.activeBags.trend), label: "from yesterday", direction: (stats.activeBags.trend >= 0 ? "up" : "down") as "up" | "down" | "neutral" }
+        },
+        {
+            title: "Revenue (Today)",
+            value: format(stats.revenue.value),
+            icon: <Banknote className="h-4 w-4" />,
+            description: `Avg. ${format(stats.revenue.avgPerBag)}/bag`,
+            trend: { value: Math.abs(stats.revenue.trend), label: "from yesterday", direction: (stats.revenue.trend >= 0 ? "up" : "down") as "up" | "down" | "neutral" }
+        },
+        {
+            title: "Check-ins",
+            value: stats.checkins.value,
+            icon: <UserCheck className="h-4 w-4" />,
+            description: `Pending: ${stats.checkins.pending}`,
+            trend: { value: Math.abs(stats.checkins.trend), label: "from yesterday", direction: (stats.checkins.trend >= 0 ? "up" : "down") as "up" | "down" | "neutral" }
+        },
+        {
+            title: "Avg. Duration",
+            value: `${stats.duration.value} hrs`,
+            icon: <Clock className="h-4 w-4" />,
+            description: "Target: 5 hrs",
+            trend: { value: 0, label: "this month", direction: "neutral" as "up" | "down" | "neutral" }
+        },
+    ] : [];
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -77,12 +116,12 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
 
                 {/* Stats Grid */}
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                    {isLoading ? (
+                    {isLoading || !stats ? (
                         Array(4).fill(0).map((_, i) => (
                             <Skeleton key={i} className="h-32 rounded-xl" />
                         ))
                     ) : (
-                        getStats(format).map((stat, i) => (
+                        statCards.map((stat, i) => (
                             <StatsCard key={i} {...stat} />
                         ))
                     )}

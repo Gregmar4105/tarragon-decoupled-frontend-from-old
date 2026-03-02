@@ -1,7 +1,7 @@
+import { Toaster } from 'sonner';
+import { MobileNav } from '@/components/MobileNav';
 import AppLayoutTemplate from '@/layouts/app/app-sidebar-layout';
 import type { AppLayoutProps } from '@/types';
-import { MobileNav } from '@/components/MobileNav';
-import { Toaster } from 'sonner';
 
 export default ({ children, breadcrumbs, ...props }: AppLayoutProps) => (
     <>
