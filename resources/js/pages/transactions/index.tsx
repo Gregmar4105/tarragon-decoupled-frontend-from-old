@@ -1,18 +1,11 @@
-import { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { DateRange } from 'react-day-picker';
 import { subDays } from 'date-fns';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from '@/components/ui/table';
+import { Download } from 'lucide-react';
+import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
+import { DateRangePicker } from '@/components/DateRangePicker';
 import { StatusBadge } from '@/components/status-badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
     Select,
@@ -21,9 +14,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { DateRangePicker } from '@/components/DateRangePicker';
-import { Download } from 'lucide-react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from '@/components/ui/table';
 import { useCurrency } from '@/context/CurrencyContext';
+import AppLayout from '@/layouts/app-layout';
 
 const breadcrumbs = [
     {

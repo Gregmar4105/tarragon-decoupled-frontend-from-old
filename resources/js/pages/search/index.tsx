@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
-import Navbar from '@/components/Navbar';
+import { Map, List, Filter } from 'lucide-react';
 import Footer from '@/components/Footer';
 import LocationCard from '@/components/LocationCard';
+import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui/button';
-import { Map, List, Filter } from 'lucide-react';
 
 export default function Search() {
     return (

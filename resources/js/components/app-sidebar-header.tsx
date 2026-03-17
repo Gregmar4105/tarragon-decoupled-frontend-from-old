@@ -1,8 +1,8 @@
 import { Breadcrumbs } from '@/components/breadcrumbs';
+import CurrencyToggle from '@/components/CurrencyToggle';
+import NotificationBell from '@/components/NotificationBell';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem as BreadcrumbItemType, User } from '@/types';
-import NotificationBell from '@/components/NotificationBell';
-import CurrencyToggle from '@/components/CurrencyToggle';
 import { usePage } from '@inertiajs/react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';

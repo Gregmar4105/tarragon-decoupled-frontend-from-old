@@ -1,18 +1,18 @@
 import { Head } from '@inertiajs/react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { Check, ShieldCheck, Clock, Calendar, HelpCircle } from 'lucide-react';
 import BookingModal from "@/components/BookingModal";
-import { useCurrency } from '@/context/CurrencyContext';
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
 import {
     Accordion,
     AccordionContent,
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Button } from '@/components/ui/button';
+import { useCurrency } from '@/context/CurrencyContext';
 
-export default function Pricing() {
+export default function Pricing({ plans }: { plans: any[] }) {
     const { format } = useCurrency();
 
     return (
@@ -34,110 +34,48 @@ export default function Pricing() {
                 {/* Pricing Cards */}
                 <div className="max-w-7xl mx-auto px-6 lg:px-12 -mt-10 mb-24 relative z-10">
                     <div className="grid md:grid-cols-3 gap-8">
-                        {/* Hourly */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col relative overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <Clock className="w-32 h-32" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Hourly Rate</h3>
-                            <p className="text-gray-500 mb-6">Perfect for short layovers</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-extrabold text-gray-900">$2.00</span>
-                                <span className="text-gray-500 font-medium">/hour/bag</span>
-                            </div>
-                            <ul className="space-y-4 mb-8 flex-1">
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>{format(750)} Insurance included</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>24/7 CCTV Monitoring</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Secure Tamper-proof Seals</span>
-                                </li>
-                            </ul>
-                            <BookingModal>
-                                <Button className="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold h-12 rounded-xl">
-                                    Book Hourly
-                                </Button>
-                            </BookingModal>
-                        </div>
+                        {plans.map((plan: any) => (
+                            <div key={plan.id} className={`rounded-3xl shadow-xl border p-8 flex flex-col relative overflow-hidden transform transition-transform duration-300 ${plan.is_popular ? 'bg-blue-600 shadow-blue-200 border-blue-500 scale-105 z-10' : 'bg-white border-gray-100 hover:-translate-y-1'}`}>
+                                {plan.is_popular && (
+                                    <div className="absolute top-0 inset-x-0 bg-blue-500/50 py-1 text-center text-xs font-bold text-white uppercase tracking-wider">
+                                        Most Popular
+                                    </div>
+                                )}
+                                <div className={`absolute top-0 right-0 p-4 ${plan.is_popular ? 'opacity-10' : 'opacity-5'}`}>
+                                    {plan.billing_cycle === 'hourly' && <Clock className={`w-32 h-32 ${plan.is_popular ? 'text-white' : ''}`} />}
+                                    {plan.billing_cycle === 'daily' && plan.is_popular && <Calendar className={`w-32 h-32 ${plan.is_popular ? 'text-white' : ''}`} />}
+                                    {plan.billing_cycle === 'daily' && !plan.is_popular && <ShieldCheck className={`w-32 h-32 ${plan.is_popular ? 'text-white' : ''}`} />}
+                                </div>
+                                <h3 className={`text-xl font-bold mb-2 ${plan.is_popular ? 'text-white mt-4' : 'text-gray-900'}`}>{plan.name}</h3>
+                                <p className={`mb-6 ${plan.is_popular ? 'text-blue-100' : 'text-gray-500'}`}>{plan.subtitle}</p>
+                                <div className="flex items-baseline gap-1 mb-6">
+                                    <span className={`text-sm font-medium mr-1 ${plan.is_popular ? 'text-blue-100' : 'text-gray-500'}`}>From</span>
+                                    <span className={`text-4xl font-extrabold ${plan.is_popular ? 'text-white' : 'text-gray-900'}`}>{format(plan.price_small)}</span>
+                                    <span className={`font-medium ${plan.is_popular ? 'text-blue-200' : 'text-gray-500'}`}>/{plan.billing_cycle}/bag</span>
+                                </div>
+                                {plan.description && (
+                                    <p className={`text-xs -mt-4 mb-6 ${plan.is_popular ? 'text-blue-200' : 'text-gray-400'}`}>{plan.description}</p>
+                                )}
 
-                        {/* Daily - Best Value */}
-                        <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-3xl shadow-2xl shadow-orange-200 border border-orange-400 p-8 flex flex-col relative overflow-hidden transform scale-105 z-10">
-                            <div className="absolute top-0 inset-x-0 bg-yellow-400/50 py-1 text-center text-xs font-bold text-white uppercase tracking-wider backdrop-blur-sm">
-                                Most Popular
+                                <ul className={`space-y-4 mb-8 flex-1 ${plan.is_popular ? 'text-blue-50' : ''}`}>
+                                    {plan.features?.map((feature: string, idx: number) => (
+                                        <li key={idx} className="flex items-center gap-3 text-sm">
+                                            {plan.is_popular ? (
+                                                <div className="bg-blue-500/50 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
+                                            ) : (
+                                                <Check className="w-5 h-5 text-green-500 shrink-0" />
+                                            )}
+                                            <span>{feature}</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <BookingModal>
+                                    <Button className={`w-full font-bold h-12 rounded-xl ${plan.is_popular ? 'bg-white text-blue-600 hover:bg-blue-50 shadow-lg' : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}`}>
+                                        {plan.billing_cycle === 'hourly' ? 'Book Hourly' : (plan.is_popular ? 'Book Daily' : 'Email for Quote')}
+                                    </Button>
+                                </BookingModal>
                             </div>
-                            <div className="absolute top-0 right-0 p-4 opacity-10">
-                                <Calendar className="w-32 h-32 text-white" />
-                            </div>
-                            <h3 className="text-xl font-bold text-white mb-2 mt-4">Daily Rate</h3>
-                            <p className="text-orange-50 mb-6">Best value for day trips</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-extrabold text-white">$5.00</span>
-                                <span className="text-orange-100 font-medium">/day/bag</span>
-                            </div>
-                            <ul className="space-y-4 mb-8 flex-1 text-orange-50">
-                                <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
-                                    <span>{format(1500)} Insurance included</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
-                                    <span>24/7 access & security</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
-                                    <span>Free Cancellation</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
-                                    <span>Any bag size</span>
-                                </li>
-                            </ul>
-                            <BookingModal>
-                                <Button className="w-full bg-white text-orange-600 hover:bg-orange-50 font-bold h-12 rounded-xl shadow-lg">
-                                    Book Daily
-                                </Button>
-                            </BookingModal>
-                        </div>
-
-                        {/* Long Term */}
-                        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8 flex flex-col relative overflow-hidden transform hover:-translate-y-1 transition-transform duration-300">
-                            <div className="absolute top-0 right-0 p-4 opacity-5">
-                                <ShieldCheck className="w-32 h-32" />
-                            </div>
-                            <h3 className="text-xl font-bold text-gray-900 mb-2">Long Term</h3>
-                            <p className="text-gray-500 mb-6">For extended stays</p>
-                            <div className="flex items-baseline gap-1 mb-6">
-                                <span className="text-4xl font-extrabold text-gray-900">$3.50</span>
-                                <span className="text-gray-500 font-medium">/day/bag</span>
-                            </div>
-                            <p className="text-xs text-gray-400 -mt-4 mb-6">*When booking 7+ days</p>
-
-                            <ul className="space-y-4 mb-8 flex-1">
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Premium Insurance ({format(3000)})</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Dedicated storage area</span>
-                                </li>
-                                <li className="flex items-center gap-3 text-sm">
-                                    <Check className="w-5 h-5 text-green-500 shrink-0" />
-                                    <span>Priority support</span>
-                                </li>
-                            </ul>
-                            <BookingModal>
-                                <Button className="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold h-12 rounded-xl">
-                                    Email for Quote
-                                </Button>
-                            </BookingModal>
-                        </div>
+                        ))}
                     </div>
                 </div>
 

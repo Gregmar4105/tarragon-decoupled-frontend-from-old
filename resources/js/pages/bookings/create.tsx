@@ -1,16 +1,16 @@
 import { Head, Link, usePage } from '@inertiajs/react';
-import QRCode from "react-qr-code";
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { router } from '@inertiajs/react'; // Add inertial router for posting data
 import { Calendar, Package, CreditCard, User, Camera, Plus, ArrowLeft, AlertTriangle, ShieldCheck, Clock, Banknote, Tag, CheckCircle } from 'lucide-react'; // Added icons
 import { useState, useMemo } from 'react';
+import QRCode from "react-qr-code";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/context/CurrencyContext';
-import { router } from '@inertiajs/react'; // Add inertial router for posting data
+import AppLayout from '@/layouts/app-layout';
 
 const breadcrumbs = [
     {
@@ -30,6 +30,9 @@ export default function BookingsCreate() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [successData, setSuccessData] = useState<any>(null);
 
+    // Pricing Logic
+    const PRICES = props.pricing || { small: 5, medium: 10, large: 15 };
+
     // Customer State
     const [firstName, setFirstName] = useState('');
     const [lastName, setLastName] = useState('');
@@ -37,7 +40,7 @@ export default function BookingsCreate() {
     const [phone, setPhone] = useState('');
 
     // Bags State
-    const [bags, setBags] = useState({ small: 0, medium: 0, large: 0 });
+    const [bags, setBags] = useState({ small: 0, medium: 0, large: 0, plus: 0 });
 
     // Dates State
     const [dropOffTime, setDropOffTime] = useState('');
@@ -46,7 +49,7 @@ export default function BookingsCreate() {
     const [tagNumber, setTagNumber] = useState('');
 
     // Computed Values
-    const totalBags = bags.small + bags.medium + bags.large;
+    const totalBags = bags.small + bags.medium + bags.large + bags.plus;
 
     const computeDurationAndPrice = useMemo(() => {
         if (!dropOffTime || !pickUpTime) return { hours: 0, price: 0 };
@@ -54,18 +57,19 @@ export default function BookingsCreate() {
         const start = new Date(dropOffTime).getTime();
         const end = new Date(pickUpTime).getTime();
 
-        if (start >= end) return { hours: 0, price: 0 };
+        if (start >= end || isNaN(start) || isNaN(end)) return { hours: 0, price: 0 };
 
         const hours = Math.ceil((end - start) / (1000 * 60 * 60)); // Round up to nearest hour
 
-        // Simple logic: Base is $10/bag/24hrs for all types 
-        // Can be separated if needed for medium/large specifics later
-        const baseRate = 10;
-        const dailyRatePeriods = Math.ceil(hours / 24);
-        const price = totalBags * baseRate * dailyRatePeriods;
+        const baseRate = (bags.small * (PRICES.small || 10)) +
+            (bags.medium * (PRICES.medium || 15)) +
+            (bags.large * (PRICES.large || 20)) +
+            (bags.plus * (PRICES.plus || 25));
+        const dailyRatePeriods = Math.ceil(hours / 24) || 1; // Ensure at least 1 day if hours < 24
+        const price = baseRate * dailyRatePeriods;
 
         return { hours, price };
-    }, [dropOffTime, pickUpTime, totalBags]);
+    }, [dropOffTime, pickUpTime, bags, PRICES]);
 
     const { hours, price } = computeDurationAndPrice;
 
@@ -107,7 +111,7 @@ export default function BookingsCreate() {
                 setPhone('');
                 setDropOffTime('');
                 setPickUpTime('');
-                setBags({ small: 0, medium: 0, large: 0 });
+                setBags({ small: 0, medium: 0, large: 0, plus: 0 });
                 setTagNumber('');
             },
             onFinish: () => setIsSubmitting(false),
@@ -306,7 +310,7 @@ export default function BookingsCreate() {
                             <CardContent className="space-y-4">
                                 <div className="space-y-4">
                                     <Label>Baggage Quantities</Label>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                         <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
                                             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Small</label>
                                             <div className="flex items-center gap-2">
@@ -326,6 +330,13 @@ export default function BookingsCreate() {
                                             <div className="flex items-center gap-2">
                                                 <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.large || ''} onChange={e => setBags(b => ({ ...b, large: parseInt(e.target.value) || 0 }))} />
                                                 <span className="text-xs text-muted-foreground hidden lg:inline">Oversize</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
+                                            <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Plus Size</label>
+                                            <div className="flex items-center gap-2">
+                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.plus || ''} onChange={e => setBags(b => ({ ...b, plus: parseInt(e.target.value) || 0 }))} />
+                                                <span className="text-xs text-muted-foreground hidden lg:inline">Surf/Golf</span>
                                             </div>
                                         </div>
                                     </div>

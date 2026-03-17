@@ -1,7 +1,8 @@
 import { Link, usePage } from '@inertiajs/react';
-import { LayoutDashboard, Calendar, ScanLine, CreditCard, BarChart3 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Home, Search, PlusCircle, LayoutDashboard, User, Calendar, CreditCard, BarChart3, ScanLine } from 'lucide-react';
+import BookingModal from '@/components/BookingModal';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function MobileNav() {
     const { url } = usePage();

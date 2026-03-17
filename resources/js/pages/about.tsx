@@ -1,9 +1,9 @@
 import { Head } from '@inertiajs/react';
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { MapPin, ShieldCheck, Clock, Users, ArrowRight } from 'lucide-react';
 import BookingModal from '@/components/BookingModal';
+import Footer from '@/components/Footer';
+import Navbar from '@/components/Navbar';
+import { Button } from '@/components/ui/button';
 
 export default function About() {
     return (

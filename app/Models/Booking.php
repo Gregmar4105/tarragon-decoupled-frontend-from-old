@@ -18,6 +18,7 @@ class Booking extends Model
         'status',
         'payment_status',
         'booking_reference',
+        'source',
         'qr_code_path',
     ];
 

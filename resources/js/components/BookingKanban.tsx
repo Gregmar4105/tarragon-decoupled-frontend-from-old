@@ -1,9 +1,9 @@
-import { useState, useEffect } from 'react';
-import { router } from '@inertiajs/react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { router } from '@inertiajs/react';
 import { Calendar, User, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Booking {
     id: string;
@@ -86,7 +86,7 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
 
         if (bookings) {
             bookings.forEach(b => {
-                const totalBags = b.bags.small + b.bags.medium + b.bags.large;
+                const totalBags = (b.bags.small || 0) + (b.bags.medium || 0) + (b.bags.large || 0) + (b.bags.plus || 0);
                 const itemData: Booking = {
                     id: b.id,
                     customer: b.customer,

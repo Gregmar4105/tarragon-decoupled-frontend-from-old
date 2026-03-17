@@ -1,11 +1,13 @@
-import { useState } from 'react';
 import { Bell, Check, Info, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Button } from "@/components/ui/button";
+import { Link, router, usePage } from '@inertiajs/react';
+import { toast } from 'sonner';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 type Notification = {
     id: string;
@@ -13,58 +15,51 @@ type Notification = {
     message: string;
     time: string;
     read: boolean;
-    type: 'info' | 'success' | 'warning';
+    type: string;
+    booking_reference?: string;
 };
 
-const initialNotifications: Notification[] = [
-    {
-        id: '1',
-        title: 'Booking Confirmed',
-        message: 'Your booking BK800000001 has been successfully confirmed.',
-        time: '2 mins ago',
-        read: false,
-        type: 'success'
-    },
-    {
-        id: '2',
-        title: 'System Update',
-        message: 'Platform maintenance scheduled for tomorrow at 2 AM.',
-        time: '1 hour ago',
-        read: false,
-        type: 'info'
-    },
-    {
-        id: '3',
-        title: 'Payment Received',
-        message: 'Payment of $10.00 was successfully processed.',
-        time: '3 hours ago',
-        read: true,
-        type: 'success'
-    },
-    {
-        id: '4',
-        title: 'Complete Profile',
-        message: 'Please complete your profile details to verify your account.',
-        time: '1 day ago',
-        read: true,
-        type: 'warning'
-    }
-];
-
 export default function NotificationBell() {
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications);
+    const { props } = usePage();
+    const notifications = (props.notifications as Notification[]) || [];
     const [isOpen, setIsOpen] = useState(false);
+
+    const prevUnreadCount = useRef(0);
 
     const unreadCount = notifications.filter(n => !n.read).length;
 
+    useEffect(() => {
+        if (unreadCount > prevUnreadCount.current) {
+            // A new notification arrived! Find the newest unread ones.
+            const newNotifications = notifications.filter(n => !n.read).slice(0, unreadCount - prevUnreadCount.current);
+            newNotifications.forEach(n => {
+                toast(n.title, {
+                    description: n.message,
+                    action: n.booking_reference ? {
+                        label: 'View',
+                        onClick: () => markAsRead(n.id, n.booking_reference)
+                    } : undefined
+                });
+            });
+        }
+        prevUnreadCount.current = unreadCount;
+    }, [unreadCount, notifications]);
+
     const markAllAsRead = () => {
-        setNotifications(notifications.map(n => ({ ...n, read: true })));
+        router.post('/notifications/read-all', {}, { preserveScroll: true, preserveState: true });
     };
 
-    const markAsRead = (id: string) => {
-        setNotifications(notifications.map(n =>
-            n.id === id ? { ...n, read: true } : n
-        ));
+    const markAsRead = (id: string, bookingRef?: string) => {
+        router.post(`/notifications/${id}/read`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                if (bookingRef) {
+                    router.get(`/bookings/${bookingRef}`);
+                    setIsOpen(false);
+                }
+            }
+        });
     };
 
     return (

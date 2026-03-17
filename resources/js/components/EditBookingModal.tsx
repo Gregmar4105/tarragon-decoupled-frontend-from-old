@@ -1,12 +1,12 @@
-import { useState, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/context/CurrencyContext';
-import { toast } from 'sonner';
 
 interface BookingInterface {
     id: string;
@@ -48,7 +48,8 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         bags: {
             small: 0,
             medium: 0,
-            large: 0
+            large: 0,
+            plus: 0
         },
         drop_off_time: '',
         pick_up_time: '',
@@ -65,6 +66,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                     small: booking.bags.small || 0,
                     medium: booking.bags.medium || 0,
                     large: booking.bags.large || 0,
+                    plus: booking.bags.plus || 0,
                 },
                 drop_off_time: formatForInput(booking.checkIn),
                 pick_up_time: formatForInput(booking.checkOut),
@@ -84,7 +86,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         return (count as number) * 100;
     };
 
-    const handleBagChange = (type: 'small' | 'medium' | 'large', val: string) => {
+    const handleBagChange = (type: 'small' | 'medium' | 'large' | 'plus', val: string) => {
         const num = parseInt(val) || 0;
         const newBags = { ...data.bags, [type]: num };
         setData(prev => ({
@@ -182,7 +184,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
 
                         <div className="border-t pt-4 mt-2">
                             <h4 className="text-sm font-medium mb-3">Bags</h4>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div>
                                     <Label htmlFor="small_bags" className="text-xs">Small</Label>
                                     <Input
@@ -211,6 +213,16 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                                         id="large_bags"
                                         value={data.bags.large}
                                         onChange={e => handleBagChange('large', e.target.value)}
+                                    />
+                                </div>
+                                <div>
+                                    <Label htmlFor="plus_bags" className="text-xs">Plus</Label>
+                                    <Input
+                                        type="number"
+                                        min="0"
+                                        id="plus_bags"
+                                        value={data.bags.plus}
+                                        onChange={e => handleBagChange('plus', e.target.value)}
                                     />
                                 </div>
                             </div>

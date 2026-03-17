@@ -1,4 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,8 +9,6 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
 
 type Props = {
     status?: string;
