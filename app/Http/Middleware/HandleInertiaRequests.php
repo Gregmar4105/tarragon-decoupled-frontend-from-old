@@ -41,7 +41,48 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'pricing' => function () {
+                $plan = \App\Models\Plan::where('is_active', true)
+                    ->orderBy('is_popular', 'desc')
+                    ->first();
+
+                if ($plan) {
+                    return [
+                        'small' => (float) $plan->price_small,
+                        'medium' => (float) $plan->price_medium,
+                        'large' => (float) $plan->price_large,
+                        'plus' => (float) $plan->price_plus,
+                    ];
+                }
+
+                return [
+                    'small' => config('pricing.small', 5),
+                    'medium' => config('pricing.medium', 10),
+                    'large' => config('pricing.large', 15),
+                    'plus' => config('pricing.plus', 20),
+                ];
+            },
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'successBookingId' => fn () => $request->session()->get('successBookingId'),
+            ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'notifications' => function () use ($request) {
+                if (!$request->user()) {
+                    return [];
+                }
+                return $request->user()->notifications()->latest()->take(50)->get()->map(function ($notification) {
+                    return [
+                        'id' => $notification->id,
+                        'title' => $notification->data['title'] ?? 'Notification',
+                        'message' => $notification->data['message'] ?? '',
+                        'time' => $notification->created_at->diffForHumans(),
+                        'read' => !is_null($notification->read_at),
+                        'type' => $notification->data['type'] ?? 'info',
+                        'booking_reference' => $notification->data['booking_reference'] ?? null,
+                    ];
+                });
+            },
         ];
     }
 }

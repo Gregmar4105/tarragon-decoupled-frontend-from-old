@@ -1,25 +1,4 @@
-import { useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
-import AppLayout from '@/layouts/app-layout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow
-} from '@/components/ui/table';
-import { StatusBadge } from '@/components/status-badge';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/components/ui/select"
 import {
     Search,
     Plus,
@@ -35,15 +14,37 @@ import {
     Pencil,
     Trash2
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import BookingKanban from '@/components/BookingKanban';
+import BookingScanner from '@/components/BookingScanner';
+import { EditBookingModal } from '@/components/EditBookingModal';
+import { StatusBadge } from '@/components/status-badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from '@/components/ui/table';
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import BookingKanban from '@/components/BookingKanban';
-import BookingScanner from '@/components/BookingScanner';
 import { useCurrency } from '@/context/CurrencyContext';
+import AppLayout from '@/layouts/app-layout';
 
 const breadcrumbs = [
     {
@@ -52,21 +53,43 @@ const breadcrumbs = [
     },
 ];
 
-const bookingsData = [
-    { id: "BK800000001", customer: "John Smith", contact: "+1 234-567-8900", bags: { small: 1, medium: 2, large: 0 }, amount: 63, status: "Booked", source: "Online", checkIn: "2026-01-28 10:00 AM", checkOut: "2026-01-28 06:00 PM" },
-    { id: "BK800000002", customer: "Sarah Johnson", contact: "+1 987-654-3210", bags: { small: 2, medium: 0, large: 0 }, amount: 45, status: "Checked-in", source: "Walk-in", checkIn: "2026-01-28 11:30 AM", checkOut: "2026-01-28 04:00 PM" },
-    { id: "BK800000003", customer: "Michael Brown", contact: "+1 555-123-4567", bags: { small: 0, medium: 3, large: 1 }, amount: 75, status: "Checked-out", source: "Online", checkIn: "2026-01-27 09:15 AM", checkOut: "2026-01-27 05:00 PM" },
-    { id: "BK800000004", customer: "Emily Davis", contact: "+1 123-456-7890", bags: { small: 1, medium: 1, large: 0 }, amount: 30, status: "Booked", source: "Online", checkIn: "2026-01-28 01:00 PM", checkOut: "2026-01-28 08:00 PM" },
-];
+interface Bags {
+    [key: string]: number;
+}
 
-export default function Bookings() {
+interface BookingInterface {
+    id: string;
+    customer: string;
+    contact: string;
+    bags: Bags;
+    amount: number;
+    status: string;
+    source: string;
+    checkIn: string;
+    checkOut: string;
+}
+
+interface Props {
+    initialBookings: BookingInterface[];
+}
+
+export default function Bookings({ initialBookings }: Props) {
     const { format } = useCurrency();
     const [search, setSearch] = useState('');
     const [view, setView] = useState<'list' | 'board'>('list');
 
     // Scanner State
     const [isScannerOpen, setIsScannerOpen] = useState(false);
-    const [bookings, setBookings] = useState(bookingsData);
+
+    // Edit Modal State
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [selectedBooking, setSelectedBooking] = useState<BookingInterface | null>(null);
+
+    const [bookings, setBookings] = useState<BookingInterface[]>(initialBookings || []);
+
+    useEffect(() => {
+        setBookings(initialBookings || []);
+    }, [initialBookings]);
 
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
         setBookings(currentBookings =>
@@ -238,7 +261,15 @@ export default function Bookings() {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50">
+                                                                    <Button
+                                                                        variant="ghost"
+                                                                        size="icon"
+                                                                        className="h-8 w-8 text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                                                                        onClick={() => {
+                                                                            setSelectedBooking(booking);
+                                                                            setIsEditModalOpen(true);
+                                                                        }}
+                                                                    >
                                                                         <Pencil className="h-4 w-4" />
                                                                     </Button>
                                                                 </TooltipTrigger>
@@ -270,7 +301,9 @@ export default function Bookings() {
                         </Card>
                     </>
                 ) : (
-                    <BookingKanban />
+                    <BookingKanban bookings={bookings} onStatusChange={(id, status) => {
+                        setBookings(current => current.map(b => b.id === id ? { ...b, status } : b));
+                    }} />
                 )}
 
                 <BookingScanner
@@ -278,6 +311,12 @@ export default function Bookings() {
                     onClose={() => setIsScannerOpen(false)}
                     bookings={bookings}
                     onCheckIn={handleCheckIn}
+                />
+
+                <EditBookingModal
+                    isOpen={isEditModalOpen}
+                    onClose={() => setIsEditModalOpen(false)}
+                    booking={selectedBooking}
                 />
             </div>
         </AppLayout>

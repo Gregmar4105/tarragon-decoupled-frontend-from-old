@@ -1,22 +1,34 @@
-import { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { router } from '@inertiajs/react';
 import { Calendar, User, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Mock data
-const initialData = {
-    booked: [
-        { id: 'BK001', customer: 'John Doe', items: 2, time: '10:00 AM' },
-        { id: 'BK002', customer: 'Jane Smith', items: 1, time: '11:00 AM' },
-    ],
-    "checked-in": [
-        { id: 'BK003', customer: 'Bob Johnson', items: 3, time: '09:00 AM' },
-    ],
-    "checked-out": [
-        { id: 'BK004', customer: 'Alice Brown', items: 2, time: 'Yesterday' },
-    ]
-};
+interface Booking {
+    id: string;
+    customer: string;
+    time: string;
+    items: number;
+    status: string;
+}
+
+interface BookingInterface {
+    id: string;
+    customer: string;
+    contact: string;
+    bags: Record<string, number>;
+    amount: number;
+    status: string;
+    source: string;
+    checkIn: string;
+    checkOut: string;
+}
+
+interface Props {
+    bookings: BookingInterface[];
+    onStatusChange?: (bookingId: string, newStatus: string) => void;
+}
 
 const getCardBorderStyle = (columnId: string) => {
     switch (columnId) {
@@ -57,24 +69,89 @@ const getBadgeStyle = (columnId: string) => {
     }
 };
 
-export default function BookingKanban() {
-    const [columns, setColumns] = useState(initialData);
+export default function BookingKanban({ bookings, onStatusChange }: Props) {
+    const [columns, setColumns] = useState<Record<string, Booking[]>>({
+        booked: [],
+        "checked-in": [],
+        "checked-out": []
+    });
+
+    // Translate dynamic Bookings array into column arrays based on status.
+    useEffect(() => {
+        const newCols: Record<string, Booking[]> = {
+            booked: [],
+            "checked-in": [],
+            "checked-out": []
+        };
+
+        if (bookings) {
+            bookings.forEach(b => {
+                const totalBags = (b.bags.small || 0) + (b.bags.medium || 0) + (b.bags.large || 0) + (b.bags.plus || 0);
+                const itemData: Booking = {
+                    id: b.id,
+                    customer: b.customer,
+                    time: b.checkIn, // Show check in time on Kanban block
+                    items: totalBags,
+                    status: b.status
+                };
+
+                // Map standard Laravel DB statuses to UI statuses where needed
+                let colKey = b.status.toLowerCase();
+
+                // Route 'pending' to 'booked' and exact matches
+                if (colKey === 'pending') colKey = 'booked';
+
+                if (newCols[colKey]) {
+                    newCols[colKey].push(itemData);
+                } else {
+                    // Fallback to booked bucket
+                    newCols['booked'].push(itemData);
+                }
+            });
+        }
+        setColumns(newCols);
+    }, [bookings]);
 
     const onDragEnd = (result: any) => {
         if (!result.destination) return;
         const { source, destination } = result;
 
         if (source.droppableId !== destination.droppableId) {
-            const sourceCol = columns[source.droppableId as keyof typeof columns];
-            const destCol = columns[destination.droppableId as keyof typeof columns];
+            const sourceCol = [...columns[source.droppableId as keyof typeof columns]];
+            const destCol = [...columns[destination.droppableId as keyof typeof columns]];
             const [removed] = sourceCol.splice(source.index, 1);
             destCol.splice(destination.index, 0, removed);
-            setColumns({ ...columns });
+
+            setColumns({
+                ...columns,
+                [source.droppableId]: sourceCol,
+                [destination.droppableId]: destCol
+            });
+
+            // ... (in onDragEnd)
+
+            if (onStatusChange) {
+                // Call back up to parent (visually optimism)
+                const newStatusMapped = destination.droppableId === 'booked' ? 'Pending' : destination.droppableId.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
+                onStatusChange(removed.id, newStatusMapped);
+
+                // Make API call
+                router.put(`/bookings/${removed.id}`, {
+                    status: newStatusMapped.toLowerCase()
+                }, {
+                    preserveScroll: true,
+                    preserveState: true,
+                });
+            }
+
         } else {
-            const column = columns[source.droppableId as keyof typeof columns];
+            const column = [...columns[source.droppableId as keyof typeof columns]];
             const [removed] = column.splice(source.index, 1);
             column.splice(destination.index, 0, removed);
-            setColumns({ ...columns });
+            setColumns({
+                ...columns,
+                [source.droppableId]: column
+            });
         }
     };
 

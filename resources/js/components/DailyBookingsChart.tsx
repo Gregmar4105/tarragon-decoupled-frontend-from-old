@@ -1,17 +1,11 @@
 
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis, CartesianGrid } from "recharts"
 
-const data = [
-    { name: "Mon", bookings: 12 },
-    { name: "Tue", bookings: 18 },
-    { name: "Wed", bookings: 15 },
-    { name: "Thu", bookings: 25 },
-    { name: "Fri", bookings: 32 },
-    { name: "Sat", bookings: 45 },
-    { name: "Sun", bookings: 38 },
-]
+interface Props {
+    data: Array<{ name: string; bookings: number }>;
+}
 
-export function DailyBookingsChart() {
+export function DailyBookingsChart({ data }: Props) {
     return (
         <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={data}>

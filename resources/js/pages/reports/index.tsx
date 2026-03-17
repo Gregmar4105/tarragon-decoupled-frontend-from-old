@@ -1,16 +1,21 @@
-import { useState } from 'react';
 import { Head } from '@inertiajs/react';
-import { DateRange } from 'react-day-picker';
 import { format, subDays } from 'date-fns';
-import AppLayout from '@/layouts/app-layout';
+import { Download } from 'lucide-react';
+import { useState } from 'react';
+import type { DateRange } from 'react-day-picker';
+import { DailyBookingsChart } from '@/components/DailyBookingsChart';
+import { DateRangePicker } from '@/components/DateRangePicker';
+import { SourcePieChart } from '@/components/SourcePieChart';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { DailyBookingsChart } from '@/components/DailyBookingsChart';
-import { SourcePieChart } from '@/components/SourcePieChart';
-import { DateRangePicker } from '@/components/DateRangePicker';
-import { Download } from 'lucide-react';
+import AppLayout from '@/layouts/app-layout';
 
-export default function Reports() {
+interface Props {
+    dailyTrend: Array<{ name: string; bookings: number }>;
+    sourceDistribution: Array<{ name: string; value: number }>;
+}
+
+export default function Reports({ dailyTrend, sourceDistribution }: Props) {
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
         from: subDays(new Date(), 30),
         to: new Date(),
@@ -52,7 +57,7 @@ export default function Reports() {
                             <CardDescription>Number of bags stored per day</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <DailyBookingsChart />
+                            <DailyBookingsChart data={dailyTrend} />
                         </CardContent>
                     </Card>
 
@@ -62,7 +67,7 @@ export default function Reports() {
                             <CardDescription>Where your customers are coming from</CardDescription>
                         </CardHeader>
                         <CardContent>
-                            <SourcePieChart />
+                            <SourcePieChart data={sourceDistribution} />
                         </CardContent>
                     </Card>
                 </div>

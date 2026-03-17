@@ -1,13 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
-import Navbar from '@/components/Navbar';
-import ParticleBackground from '@/components/ParticleBackground';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import BookingModal from '@/components/BookingModal';
-import BaggageScanner from '@/components/BaggageScanner';
-import LocationCard from '@/components/LocationCard';
-import { useState } from 'react';
+import { motion } from 'framer-motion';
 import {
     ShieldCheck,
     Clock,
@@ -20,7 +12,15 @@ import {
     CheckCircle,
     ArrowRight
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import BaggageScanner from '@/components/BaggageScanner';
+import BookingModal from '@/components/BookingModal';
+import Footer from '@/components/Footer';
+import LocationCard from '@/components/LocationCard';
+import Navbar from '@/components/Navbar';
+import ParticleBackground from '@/components/ParticleBackground';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { useCurrency } from '@/context/CurrencyContext';
 
 export default function Welcome() {
@@ -123,8 +123,9 @@ export default function Welcome() {
                                                         </p>
                                                     </div>
                                                     <div className="flex flex-col items-end">
+                                                        <span className="text-xs text-gray-500 mb-[-4px]">From</span>
                                                         <span className="font-bold text-lg text-blue-600">{format(5)}</span>
-                                                        <span className="text-xs text-gray-500">/day</span>
+                                                        <span className="text-xs text-gray-500">/day/bag</span>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2 pt-2">
