@@ -35,7 +35,7 @@ class DashboardController extends Controller
         });
 
         // Active Bags
-        $capacity = \App\Models\Branch::first()?->capacity ?? 150;
+        $capacity = 150;
         $activeBookingsTodayQuery = Booking::whereIn('status', ['dropped_off']);
         $activeBagsToday = $activeBookingsTodayQuery->withCount(['items as total_bags' => function ($query) {
             $query->select(\Illuminate\Support\Facades\DB::raw('sum(quantity)'));

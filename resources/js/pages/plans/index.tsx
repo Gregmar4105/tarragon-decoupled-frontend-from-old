@@ -148,7 +148,7 @@ export default function PlansIndex({ plans }: { plans: Plan[] }) {
                         <p className="text-muted-foreground">Manage the pricing tiers displayed on the landing page.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white" onClick={openCreateModal}>
+                        <Button className="gap-2 bg-orange-600 hover:bg-orange-700 text-white" onClick={openCreateModal}>
                             <Plus className="h-4 w-4" />
                             Add New Plan
                         </Button>
@@ -172,7 +172,7 @@ export default function PlansIndex({ plans }: { plans: Plan[] }) {
                                     <TableRow key={plan.id}>
                                         <TableCell>
                                             <div className="font-medium text-gray-900">{plan.name}</div>
-                                            {plan.is_popular && <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full ml-2">Popular</span>}
+                                            {plan.is_popular && <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full ml-2">Popular</span>}
                                         </TableCell>
                                         <TableCell className="capitalize">{plan.billing_cycle}</TableCell>
                                         <TableCell className="text-sm">
@@ -321,7 +321,7 @@ export default function PlansIndex({ plans }: { plans: Plan[] }) {
 
                             <DialogFooter className="pt-4">
                                 <Button type="button" variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-                                <Button type="submit" className="bg-blue-600 hover:bg-blue-700" disabled={processing}>
+                                <Button type="submit" className="bg-orange-600 hover:bg-orange-700" disabled={processing}>
                                     {processing ? 'Saving...' : 'Save Plan'}
                                 </Button>
                             </DialogFooter>

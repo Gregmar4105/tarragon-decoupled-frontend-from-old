@@ -11,12 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('plans', function (Blueprint $table) {
-            $table->string('subtitle')->nullable()->after('name');
-            $table->json('features')->nullable()->after('price');
-            $table->string('billing_cycle')->default('hourly')->after('features');
-            $table->boolean('is_popular')->default(false)->after('billing_cycle');
-        });
+        if (!Schema::hasColumn('plans', 'subtitle')) {
+            Schema::table('plans', function (Blueprint $table) {
+                $table->string('subtitle')->nullable()->after('name');
+            });
+        }
+        
+        if (!Schema::hasColumn('plans', 'features')) {
+            Schema::table('plans', function (Blueprint $table) {
+                $table->json('features')->nullable()->after('price');
+                $table->string('billing_cycle')->default('hourly')->after('features');
+                $table->boolean('is_popular')->default(false)->after('billing_cycle');
+            });
+        }
     }
 
     /**
