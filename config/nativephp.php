@@ -299,7 +299,7 @@ return [
     */
 
     'permissions' => [
-        'camera' => 'ANDREI BUKSAN MO ANG CAMERA PERMISSION SABI KO.',
+        'camera' => 'ANDREI I-ON MO NGANI ANG CAMERA.',
     ],
 
     /*

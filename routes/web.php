@@ -9,9 +9,7 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
 
 Route::get('/', function () {
-    return Inertia::render('welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
+    return redirect()->route('login');
 })->name('home');
 
 Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
