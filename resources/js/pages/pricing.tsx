@@ -60,46 +60,46 @@ export default function Pricing() {
                                 </li>
                             </ul>
                             <BookingModal>
-                                <Button className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold h-12 rounded-xl">
+                                <Button className="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold h-12 rounded-xl">
                                     Book Hourly
                                 </Button>
                             </BookingModal>
                         </div>
 
                         {/* Daily - Best Value */}
-                        <div className="bg-blue-600 rounded-3xl shadow-2xl shadow-blue-200 border border-blue-500 p-8 flex flex-col relative overflow-hidden transform scale-105 z-10">
-                            <div className="absolute top-0 inset-x-0 bg-blue-500/50 py-1 text-center text-xs font-bold text-white uppercase tracking-wider">
+                        <div className="bg-gradient-to-br from-yellow-500 to-orange-500 rounded-3xl shadow-2xl shadow-orange-200 border border-orange-400 p-8 flex flex-col relative overflow-hidden transform scale-105 z-10">
+                            <div className="absolute top-0 inset-x-0 bg-yellow-400/50 py-1 text-center text-xs font-bold text-white uppercase tracking-wider backdrop-blur-sm">
                                 Most Popular
                             </div>
                             <div className="absolute top-0 right-0 p-4 opacity-10">
                                 <Calendar className="w-32 h-32 text-white" />
                             </div>
                             <h3 className="text-xl font-bold text-white mb-2 mt-4">Daily Rate</h3>
-                            <p className="text-blue-100 mb-6">Best value for day trips</p>
+                            <p className="text-orange-50 mb-6">Best value for day trips</p>
                             <div className="flex items-baseline gap-1 mb-6">
                                 <span className="text-4xl font-extrabold text-white">$5.00</span>
-                                <span className="text-blue-200 font-medium">/day/bag</span>
+                                <span className="text-orange-100 font-medium">/day/bag</span>
                             </div>
-                            <ul className="space-y-4 mb-8 flex-1 text-blue-50">
+                            <ul className="space-y-4 mb-8 flex-1 text-orange-50">
                                 <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-blue-500/50 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
+                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
                                     <span>{format(1500)} Insurance included</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-blue-500/50 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
+                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
                                     <span>24/7 access & security</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-blue-500/50 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
+                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
                                     <span>Free Cancellation</span>
                                 </li>
                                 <li className="flex items-center gap-3 text-sm">
-                                    <div className="bg-blue-500/50 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
+                                    <div className="bg-white/20 p-1 rounded-full"><Check className="w-3 h-3 text-white" /></div>
                                     <span>Any bag size</span>
                                 </li>
                             </ul>
                             <BookingModal>
-                                <Button className="w-full bg-white text-blue-600 hover:bg-blue-50 font-bold h-12 rounded-xl shadow-lg">
+                                <Button className="w-full bg-white text-orange-600 hover:bg-orange-50 font-bold h-12 rounded-xl shadow-lg">
                                     Book Daily
                                 </Button>
                             </BookingModal>
@@ -133,7 +133,7 @@ export default function Pricing() {
                                 </li>
                             </ul>
                             <BookingModal>
-                                <Button className="w-full bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold h-12 rounded-xl">
+                                <Button className="w-full bg-orange-50 text-orange-600 hover:bg-orange-100 font-bold h-12 rounded-xl">
                                     Email for Quote
                                 </Button>
                             </BookingModal>
@@ -144,7 +144,7 @@ export default function Pricing() {
                 {/* FAQ Section */}
                 <div className="max-w-3xl mx-auto px-6 mb-24">
                     <div className="flex items-center gap-3 mb-8 justify-center">
-                        <HelpCircle className="w-6 h-6 text-blue-600" />
+                        <HelpCircle className="w-6 h-6 text-orange-500" />
                         <h2 className="text-2xl font-bold text-gray-900">Frequently Asked Questions</h2>
                     </div>
                     <Accordion type="single" collapsible className="w-full">

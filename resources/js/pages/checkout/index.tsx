@@ -68,7 +68,7 @@ export default function Checkout() {
                                 </CardContent>
                             </Card>
 
-                            <Button size="lg" className="w-full h-14 text-lg font-bold bg-blue-600 hover:bg-blue-700">
+                            <Button size="lg" className="w-full h-14 text-lg font-bold bg-orange-500 hover:bg-orange-600 shadow-md transition-all text-white">
                                 Confirm and Pay {format(10)}
                             </Button>
 
@@ -124,7 +124,7 @@ export default function Checkout() {
                                 </div>
                                 <div className="pt-4 border-t border-gray-100 flex justify-between items-center">
                                     <span className="font-bold text-lg">Total</span>
-                                    <span className="font-bold text-2xl text-blue-600">{format(10)}</span>
+                                    <span className="font-bold text-2xl text-orange-600">{format(10)}</span>
                                 </div>
                             </div>
                         </div>

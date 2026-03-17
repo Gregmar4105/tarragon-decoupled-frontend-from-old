@@ -167,12 +167,12 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
 
                         {/* Overlay elements */}
                         {scanning && (
-                            <div className="absolute inset-0 border-2 border-blue-500/50 rounded-lg pointer-events-none flex items-center justify-center">
+                            <div className="absolute inset-0 border-2 border-orange-500/50 rounded-lg pointer-events-none flex items-center justify-center">
                                 <div className="w-64 h-64 border-2 border-white/80 rounded-lg relative">
-                                    <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-blue-500"></div>
-                                    <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-blue-500"></div>
-                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-blue-500"></div>
-                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-blue-500"></div>
+                                    <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-orange-500"></div>
+                                    <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-orange-500"></div>
+                                    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-orange-500"></div>
+                                    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-orange-500"></div>
                                 </div>
                             </div>
                         )}
@@ -190,7 +190,7 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
 
                         {!scanning && !permissionError && !scanResult && (
                             <div className="absolute inset-0 flex items-center justify-center text-white">
-                                <RefreshCw className="h-8 w-8 animate-spin text-blue-500" />
+                                <RefreshCw className="h-8 w-8 animate-spin text-orange-500" />
                             </div>
                         )}
                     </div>

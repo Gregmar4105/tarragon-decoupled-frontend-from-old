@@ -35,7 +35,7 @@ export default function LocationCard() {
                         <span className="text-lg font-bold text-gray-900">{format(5)}</span>
                         <span className="text-xs text-gray-500">/bag/day</span>
                     </div>
-                    <Button size="sm" className="rounded-full bg-blue-600 hover:bg-blue-700">Book</Button>
+                    <Button size="sm" className="rounded-full bg-orange-500 hover:bg-orange-600 shadow-sm text-white">Book</Button>
                 </div>
             </div>
         </div>

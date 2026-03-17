@@ -111,7 +111,7 @@ export default function BookingShow({ bookingId }: { bookingId?: string }) {
                                 <div className="space-y-1">
                                     <label className="text-xs text-muted-foreground uppercase font-bold tracking-wider">Tag Number</label>
                                     <div className="flex items-center gap-2 font-medium bg-gray-50 p-3 rounded-lg border border-gray-100 w-fit">
-                                        <Tag className="h-4 w-4 text-blue-500" />
+                                        <Tag className="h-4 w-4 text-orange-500" />
                                         <span className="font-mono">{booking.tagNumber || "Not Assigned"}</span>
                                     </div>
                                 </div>
@@ -160,8 +160,8 @@ export default function BookingShow({ bookingId }: { bookingId?: string }) {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="bg-blue-100 p-2 rounded-full">
-                                        <User className="h-5 w-5 text-blue-600" />
+                                    <div className="bg-orange-100 p-2 rounded-full">
+                                        <User className="h-5 w-5 text-orange-600" />
                                     </div>
                                     <div>
                                         <p className="font-medium">{booking.customer}</p>
@@ -170,7 +170,7 @@ export default function BookingShow({ bookingId }: { bookingId?: string }) {
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
                                     <Mail className="h-4 w-4 text-gray-400" />
-                                    <a href={`mailto:${booking.email}`} className="text-blue-600 hover:underline">{booking.email}</a>
+                                    <a href={`mailto:${booking.email}`} className="text-orange-600 hover:underline">{booking.email}</a>
                                 </div>
                                 <div className="flex items-center gap-3 text-sm">
                                     <Phone className="h-4 w-4 text-gray-400" />

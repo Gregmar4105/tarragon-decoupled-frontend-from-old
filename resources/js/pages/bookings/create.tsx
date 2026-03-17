@@ -157,7 +157,7 @@ export default function BookingsCreate() {
 
                                         <div className="space-y-4">
                                             <div className="flex items-start gap-3">
-                                                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                                <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                     <Calendar className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -166,7 +166,7 @@ export default function BookingsCreate() {
                                                 </div>
                                             </div>
                                             <div className="flex items-start gap-3">
-                                                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                                <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                     <Calendar className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -175,7 +175,7 @@ export default function BookingsCreate() {
                                                 </div>
                                             </div>
                                             <div className="flex items-start gap-3">
-                                                <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                                <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                     <Package className="w-5 h-5" />
                                                 </div>
                                                 <div>
@@ -192,9 +192,9 @@ export default function BookingsCreate() {
                                                 <QRCode value={successData.id} size={180} />
                                             </div>
                                         </div>
-                                        <div className="w-full bg-blue-50 p-4 rounded-xl text-center">
-                                            <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Total Due</p>
-                                            <p className="text-2xl font-extrabold text-blue-600">{format(successData.total)}</p>
+                                        <div className="w-full bg-orange-50 p-4 rounded-xl text-center">
+                                            <p className="text-xs text-orange-600 font-bold uppercase tracking-wider mb-1">Total Due</p>
+                                            <p className="text-2xl font-extrabold text-orange-600">{format(successData.total)}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -237,7 +237,7 @@ export default function BookingsCreate() {
                         </Card>
 
                         {/* Booking Summary & Payment */}
-                        <Card className="lg:row-span-2 shadow-sm border-gray-200 flex flex-col h-full">
+                        <Card className="lg:row-span-2 shadow-sm border-gray-200 flex flex-col h-full order-last lg:order-none">
                             <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/40">
                                 <CardTitle className="text-lg font-semibold tracking-tight text-gray-900">Booking Summary</CardTitle>
                                 <CardDescription className="text-gray-500">Review details and confirm payment.</CardDescription>
@@ -271,7 +271,7 @@ export default function BookingsCreate() {
 
                                     <div className="flex justify-between items-end">
                                         <span className="font-semibold text-lg text-muted-foreground">Total</span>
-                                        <span className="font-bold text-4xl text-blue-700 tracking-tight">{format(price)}</span>
+                                        <span className="font-bold text-4xl text-orange-600 tracking-tight">{format(price)}</span>
                                     </div>
                                 </div>
 
@@ -290,7 +290,7 @@ export default function BookingsCreate() {
                                         </div>
                                     </div>
 
-                                    <Button size="lg" className="w-full font-bold h-12 text-base shadow-lg shadow-blue-500/20 bg-blue-600 hover:bg-blue-700 text-white transition-all hover:translate-y-[-1px]" onClick={handleConfirmBooking} disabled={isSubmitting || price === 0}>
+                                    <Button size="lg" className="w-full font-bold h-12 text-base shadow-lg shadow-orange-500/20 bg-orange-500 hover:bg-orange-600 text-white transition-all hover:translate-y-[-1px]" onClick={handleConfirmBooking} disabled={isSubmitting || price === 0}>
                                         {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
                                     </Button>
                                 </div>
@@ -356,9 +356,9 @@ export default function BookingsCreate() {
                                     </div>
                                 </div>
 
-                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-3 hover:bg-gray-50/80 hover:border-blue-400 cursor-pointer transition-all group">
-                                    <div className="bg-gray-100 p-3 rounded-full group-hover:bg-blue-100 transition-colors">
-                                        <Camera className="w-6 h-6 text-gray-500 group-hover:text-blue-600" />
+                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-3 hover:bg-gray-50/80 hover:border-orange-400 cursor-pointer transition-all group">
+                                    <div className="bg-gray-100 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
+                                        <Camera className="w-6 h-6 text-gray-500 group-hover:text-orange-500" />
                                     </div>
                                     <div className="space-y-1">
                                         <p className="font-semibold text-gray-900">Take Bag Photo</p>

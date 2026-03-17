@@ -11,8 +11,8 @@ export function DailyBookingsChart({ data }: Props) {
             <AreaChart data={data}>
                 <defs>
                     <linearGradient id="colorBookings" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
-                        <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.1} />
+                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
                     </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -34,7 +34,7 @@ export function DailyBookingsChart({ data }: Props) {
                 <Area
                     type="monotone"
                     dataKey="bookings"
-                    stroke="#2563eb"
+                    stroke="#f97316"
                     strokeWidth={2}
                     fillOpacity={1}
                     fill="url(#colorBookings)"

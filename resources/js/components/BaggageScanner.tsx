@@ -61,37 +61,39 @@ export default function BaggageScanner() {
     };
 
     return (
-        <section className="py-24 bg-gray-900 text-white overflow-hidden relative">
+        <section className="py-16 md:py-24 bg-gray-900 text-white overflow-hidden relative">
             {/* Background decorative elements */}
-            <div className="absolute top-0 right-0 w-1/2 h-1/2 bg-blue-500/10 blur-[100px] rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-purple-500/10 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-orange-500/10 blur-[100px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-yellow-500/10 blur-[100px] rounded-full pointer-events-none" />
 
             <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
                     {/* Text / Intro */}
-                    <div className="space-y-8">
-                        <div className="inline-flex items-center gap-2 bg-blue-500/20 text-blue-300 px-4 py-1.5 rounded-full text-sm font-medium border border-blue-500/30">
+                    <div className="space-y-6 md:space-y-8 text-center lg:text-left">
+                        <div className="inline-flex items-center gap-2 bg-orange-500/20 text-orange-300 px-4 py-1.5 rounded-full text-sm font-medium border border-orange-500/30">
                             <ScanLine className="w-4 h-4" />
                             AI-Powered Size Detection
                         </div>
-                        <h2 className="text-4xl lg:text-5xl font-bold tracking-tight">
-                            Unsure about your <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">bag size?</span>
+                        <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
+                            Unsure about your <br className="hidden sm:block" />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-400">bag size?</span>
                         </h2>
-                        <p className="text-lg text-gray-400 max-w-lg leading-relaxed">
+                        <p className="text-base sm:text-lg text-gray-400 max-w-lg mx-auto lg:mx-0 leading-relaxed">
                             Use our AI scanner to instantly measure your luggage. Just point your camera, and we'll tell you if it fits a Small, Medium, or Large locker.
                         </p>
 
                         {!hasPermission && (
-                            <Button
-                                size="lg"
-                                onClick={startCamera}
-                                className="h-14 px-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-lg shadow-lg shadow-blue-900/50 transition-all group"
-                            >
-                                <Camera className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
-                                Start Scanner
-                            </Button>
+                            <div className="flex justify-center lg:justify-start">
+                                <Button
+                                    size="lg"
+                                    onClick={startCamera}
+                                    className="h-14 px-8 w-full sm:w-auto rounded-full bg-orange-500 hover:bg-orange-600 text-white font-bold text-lg shadow-lg shadow-orange-900/50 transition-all group"
+                                >
+                                    <Camera className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                                    Start Scanner
+                                </Button>
+                            </div>
                         )}
                     </div>
 
@@ -115,15 +117,15 @@ export default function BaggageScanner() {
                                 {/* AR Overlay UI */}
                                 <div className="absolute inset-0 pointer-events-none">
                                     {/* Scanning Corner Brackets */}
-                                    <div className="absolute top-8 left-8 w-16 h-16 border-t-4 border-l-4 border-blue-500 rounded-tl-xl opacity-80" />
-                                    <div className="absolute top-8 right-8 w-16 h-16 border-t-4 border-r-4 border-blue-500 rounded-tr-xl opacity-80" />
-                                    <div className="absolute bottom-8 left-8 w-16 h-16 border-b-4 border-l-4 border-blue-500 rounded-bl-xl opacity-80" />
-                                    <div className="absolute bottom-8 right-8 w-16 h-16 border-b-4 border-r-4 border-blue-500 rounded-br-xl opacity-80" />
+                                    <div className="absolute top-8 left-8 w-12 h-12 md:w-16 md:h-16 border-t-4 border-l-4 border-orange-500 rounded-tl-xl opacity-80" />
+                                    <div className="absolute top-8 right-8 w-12 h-12 md:w-16 md:h-16 border-t-4 border-r-4 border-orange-500 rounded-tr-xl opacity-80" />
+                                    <div className="absolute bottom-8 left-8 w-12 h-12 md:w-16 md:h-16 border-b-4 border-l-4 border-orange-500 rounded-bl-xl opacity-80" />
+                                    <div className="absolute bottom-8 right-8 w-12 h-12 md:w-16 md:h-16 border-b-4 border-r-4 border-orange-500 rounded-br-xl opacity-80" />
 
                                     {/* Scanning Beam */}
                                     {isScanning && !scanResult && (
                                         <motion.div
-                                            className="absolute top-0 left-0 w-full h-1 bg-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.8)]"
+                                            className="absolute top-0 left-0 w-full h-1 bg-orange-400 shadow-[0_0_20px_rgba(249,115,22,0.8)]"
                                             animate={{ top: ['10%', '90%', '10%'] }}
                                             transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
                                         />
@@ -164,7 +166,7 @@ export default function BaggageScanner() {
                                                         <Button onClick={simulateScan} variant="outline" className="flex-1 border-gray-200">
                                                             <RefreshCw className="w-4 h-4 mr-2" /> Retry
                                                         </Button>
-                                                        <Button onClick={stopCamera} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white">
+                                                        <Button onClick={stopCamera} className="flex-1 bg-orange-500 hover:bg-orange-600 text-white">
                                                             Select
                                                         </Button>
                                                     </div>

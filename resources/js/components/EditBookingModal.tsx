@@ -218,7 +218,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                     </div>
                     <DialogFooter className="items-center sm:justify-between">
                         <div className="font-semibold text-lg">Total: {format(data.total_price)}</div>
-                        <Button type="submit" disabled={processing} className="bg-blue-600">
+                        <Button type="submit" disabled={processing} className="bg-orange-500 hover:bg-orange-600 text-white shadow-sm">
                             Save Changes
                         </Button>
                     </DialogFooter>

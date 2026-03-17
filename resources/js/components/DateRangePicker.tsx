@@ -76,7 +76,7 @@ export function DateRangePicker({
                         id="date"
                         variant={"outline"}
                         className={cn(
-                            "w-[280px] justify-start text-left font-normal",
+                            "w-full sm:w-[280px] justify-start text-left font-normal",
                             !dateRange && "text-muted-foreground"
                         )}
                     >
@@ -96,9 +96,9 @@ export function DateRangePicker({
                     </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                    <div className="flex">
+                    <div className="flex flex-col sm:flex-row">
                         {/* Left Calendar - From Date */}
-                        <div className="border-r">
+                        <div className="border-b sm:border-b-0 sm:border-r">
                             <div className="p-3 border-b flex items-center justify-center gap-2">
                                 <Select
                                     value={startMonth.getMonth().toString()}

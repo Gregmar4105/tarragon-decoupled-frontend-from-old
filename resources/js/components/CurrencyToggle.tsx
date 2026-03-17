@@ -8,7 +8,7 @@ export default function CurrencyToggle() {
     return (
         <button
             onClick={toggle}
-            className="flex items-center gap-1.5 text-sm font-bold text-blue-600 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-full transition-colors"
+            className="flex items-center gap-1.5 text-sm font-bold text-orange-600 bg-orange-50 hover:bg-orange-100 px-3 py-1.5 rounded-full transition-colors"
         >
             <ArrowRightLeft className="w-3.5 h-3.5" />
             {currency}

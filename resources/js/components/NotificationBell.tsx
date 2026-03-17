@@ -77,7 +77,7 @@ export default function NotificationBell() {
                     className="relative group transition-all duration-300 ease-in-out hover:bg-gray-100 rounded-full h-10 w-10 focus-visible:ring-0 focus-visible:ring-offset-0"
                 >
                     <div className={`transition-all duration-300 ${unreadCount > 0 ? 'animate-[wiggle_1s_ease-in-out_infinite]' : ''}`}>
-                        <Bell className={`h-5 w-5 text-gray-600 transition-colors ${unreadCount > 0 ? 'group-hover:text-blue-600' : ''}`} />
+                        <Bell className={`h-5 w-5 text-gray-600 transition-colors ${unreadCount > 0 ? 'group-hover:text-orange-500' : ''}`} />
                     </div>
 
                     {unreadCount > 0 && (
@@ -97,7 +97,7 @@ export default function NotificationBell() {
                                 e.preventDefault();
                                 markAllAsRead();
                             }}
-                            className="text-xs font-medium text-blue-600 hover:text-blue-700 hover:underline"
+                            className="text-xs font-medium text-orange-600 hover:text-orange-700 hover:underline"
                         >
                             Mark all as read
                         </button>
@@ -115,9 +115,9 @@ export default function NotificationBell() {
                             {notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors flex gap-4 ${notification.read ? 'opacity-70' : 'bg-blue-50/30'}`}
+                                    className={`w-full text-left p-4 hover:bg-gray-50 transition-colors flex gap-4 ${notification.read ? 'opacity-70' : 'bg-orange-50/30'}`}
                                 >
-                                    <div className={`mt-1 shrink-0 h-2 w-2 rounded-full ${notification.read ? 'bg-transparent' : 'bg-blue-600'}`} />
+                                    <div className={`mt-1 shrink-0 h-2 w-2 rounded-full ${notification.read ? 'bg-transparent' : 'bg-orange-500'}`} />
                                     <div className="flex-1 space-y-1">
                                         <div className="flex items-start justify-between gap-2">
                                             <p className={`text-sm ${notification.read ? 'font-medium text-gray-700' : 'font-bold text-gray-900'}`}>

@@ -15,7 +15,7 @@ export default function Search() {
                 {/* Listings Panel */}
                 <div className="w-full md:w-1/2 lg:w-2/5 p-4 md:p-6 overflow-y-auto border-r border-gray-200">
                     <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">4 Locations in Pasay City</h1>
+                        <h1 className="text-2xl font-bold text-gray-900">Available Storage in Pasay City</h1>
                         <Button variant="outline" size="sm" className="gap-2">
                             <Filter className="w-4 h-4" /> Filters
                         </Button>

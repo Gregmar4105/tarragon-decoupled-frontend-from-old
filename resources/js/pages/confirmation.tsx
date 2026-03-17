@@ -47,7 +47,7 @@ export default function Confirmation({ bookingId }: { bookingId?: string }) {
 
                                     <div className="space-y-4">
                                         <div className="flex items-start gap-3">
-                                            <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                            <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                 <Calendar className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -56,7 +56,7 @@ export default function Confirmation({ bookingId }: { bookingId?: string }) {
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
-                                            <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                            <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                 <Calendar className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -65,13 +65,13 @@ export default function Confirmation({ bookingId }: { bookingId?: string }) {
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
-                                            <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
+                                            <div className="bg-orange-50 p-2 rounded-lg text-orange-600">
                                                 <MapPin className="w-5 h-5" />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-gray-900">Location</p>
                                                 <p className="text-gray-600">{booking.location}</p>
-                                                <a href="#" className="text-sm text-blue-600 font-medium hover:underline">Get Directions</a>
+                                                <a href="#" className="text-sm text-orange-600 font-medium hover:underline">Get Directions</a>
                                             </div>
                                         </div>
                                     </div>
@@ -96,9 +96,9 @@ export default function Confirmation({ bookingId }: { bookingId?: string }) {
                                     <p className="text-center text-sm text-gray-500 mb-6">
                                         Show this QR code to our staff when you arrive to drop off your bags.
                                     </p>
-                                    <div className="w-full bg-blue-50 p-4 rounded-xl text-center">
-                                        <p className="text-xs text-blue-600 font-bold uppercase tracking-wider mb-1">Total Paid</p>
-                                        <p className="text-2xl font-extrabold text-blue-600">{format(booking.total)}</p>
+                                    <div className="w-full bg-orange-50 p-4 rounded-xl text-center">
+                                        <p className="text-xs text-orange-600 font-bold uppercase tracking-wider mb-1">Total Paid</p>
+                                        <p className="text-2xl font-extrabold text-orange-600">{format(booking.total)}</p>
                                     </div>
                                 </div>
                             </div>

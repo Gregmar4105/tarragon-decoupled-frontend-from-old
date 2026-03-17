@@ -89,6 +89,12 @@ export default function Bookings({ initialBookings }: Props) {
 
     useEffect(() => {
         setBookings(initialBookings || []);
+        
+        const searchParams = new URLSearchParams(window.location.search);
+        if (searchParams.get('scan') === 'true') {
+            setIsScannerOpen(true);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }, [initialBookings]);
 
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
@@ -104,45 +110,45 @@ export default function Bookings({ initialBookings }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Bookings Management" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <h1 className="text-2xl font-bold tracking-tight">Bookings Management</h1>
-                    <div className="flex items-center gap-2">
-                        <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200">
+                        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 justify-end">
+                            <div className="flex items-center bg-gray-100 p-1 rounded-lg border border-gray-200 shrink-0">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={`h-8 w-8 p-0 rounded-md ${view === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    onClick={() => setView('list')}
+                                >
+                                    <List className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className={`h-8 w-8 p-0 rounded-md ${view === 'board' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
+                                    onClick={() => setView('board')}
+                                >
+                                    <LayoutGrid className="h-4 w-4" />
+                                </Button>
+                            </div>
+
                             <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-8 w-8 p-0 rounded-md ${view === 'list' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                                onClick={() => setView('list')}
+                                variant="outline"
+                                className="gap-2 border-dashed border-gray-300 hidden md:flex shrink-0"
+                                onClick={() => setIsScannerOpen(true)}
                             >
-                                <List className="h-4 w-4" />
+                                <ScanLine className="h-4 w-4" />
+                                Scan QR
                             </Button>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className={`h-8 w-8 p-0 rounded-md ${view === 'board' ? 'bg-white shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}
-                                onClick={() => setView('board')}
-                            >
-                                <LayoutGrid className="h-4 w-4" />
+
+                            <Button className="gap-2 bg-orange-500 hover:bg-orange-600 text-white shadow-sm shrink-0" asChild>
+                                <Link href="/bookings/create">
+                                    <Plus className="h-4 w-4" />
+                                    Add Walk-in
+                                </Link>
                             </Button>
                         </div>
-
-                        <Button
-                            variant="outline"
-                            className="gap-2 border-dashed border-gray-300"
-                            onClick={() => setIsScannerOpen(true)}
-                        >
-                            <ScanLine className="h-4 w-4" />
-                            Scan QR
-                        </Button>
-
-                        <Button className="gap-2 bg-blue-600 hover:bg-blue-700 text-white" asChild>
-                            <Link href="/bookings/create">
-                                <Plus className="h-4 w-4" />
-                                Add Walk-in Booking
-                            </Link>
-                        </Button>
-                    </div>
                 </div>
 
                 {view === 'list' ? (
@@ -209,9 +215,9 @@ export default function Bookings({ initialBookings }: Props) {
                         </div>
 
                         {/* Table */}
-                        <Card>
-                            <CardContent className="p-0">
-                                <Table>
+                        <Card className="overflow-hidden w-full">
+                            <CardContent className="p-0 overflow-x-auto">
+                                <Table className="min-w-[800px]">
                                     <TableHeader>
                                         <TableRow>
                                             <TableHead>Booking ID</TableHead>
@@ -246,7 +252,7 @@ export default function Bookings({ initialBookings }: Props) {
                                                         <TooltipProvider>
                                                             <Tooltip>
                                                                 <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+                                                                    <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
                                                                         <Link href={`/bookings/${booking.id}`}>
                                                                             <Eye className="h-4 w-4" />
                                                                         </Link>

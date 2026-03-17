@@ -86,14 +86,14 @@ export default function GuestChatbot() {
                         className="bg-white border text-gray-900 border-gray-200 shadow-2xl rounded-2xl w-[320px] sm:w-[380px] h-[450px] flex flex-col overflow-hidden mb-4"
                     >
                         {/* Header */}
-                        <div className="bg-blue-600 text-white p-4 flex items-center justify-between">
+                        <div className="bg-orange-500 text-white p-4 flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <div className="bg-white/20 p-1.5 rounded-lg">
                                     <Bot className="w-5 h-5" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-sm">Tarragon Assistant</h3>
-                                    <p className="text-xs text-blue-100 flex items-center gap-1">
+                                    <p className="text-xs text-orange-100 flex items-center gap-1">
                                         <span className="w-2 h-2 rounded-full bg-green-400 inline-block"></span>
                                         Online
                                     </p>
@@ -116,14 +116,14 @@ export default function GuestChatbot() {
                                 >
                                     <div className="flex gap-2 items-end">
                                         {msg.sender === 'bot' && (
-                                            <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0 mb-1">
+                                            <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mb-1">
                                                 <Bot className="w-3.5 h-3.5" />
                                             </div>
                                         )}
                                         <div 
                                             className={`p-3 rounded-2xl text-sm ${
                                                 msg.sender === 'user' 
-                                                    ? 'bg-blue-600 text-white rounded-br-none' 
+                                                    ? 'bg-orange-500 text-white rounded-br-none' 
                                                     : 'bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-none'
                                             }`}
                                         >
@@ -140,7 +140,7 @@ export default function GuestChatbot() {
                                             <button
                                                 key={i}
                                                 onClick={() => handleSend(q)}
-                                                className="text-left text-xs bg-white border border-blue-100 text-blue-600 hover:bg-blue-50 px-3 py-2 rounded-xl transition-colors shadow-sm"
+                                                className="text-left text-xs bg-white border border-orange-100 text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-xl transition-colors shadow-sm"
                                             >
                                                 {q}
                                             </button>
@@ -164,13 +164,13 @@ export default function GuestChatbot() {
                                     value={inputValue}
                                     onChange={(e) => setInputValue(e.target.value)}
                                     placeholder="Type your message..."
-                                    className="border-gray-200 rounded-full bg-gray-50 focus-visible:ring-blue-500"
+                                    className="border-gray-200 rounded-full bg-gray-50 focus-visible:ring-orange-500"
                                 />
                                 <Button 
                                     type="submit" 
                                     size="icon"
                                     disabled={!inputValue.trim()}
-                                    className="rounded-full bg-blue-600 hover:bg-blue-700 shrink-0"
+                                    className="rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm shrink-0"
                                 >
                                     <Send className="w-4 h-4" />
                                 </Button>
@@ -184,7 +184,7 @@ export default function GuestChatbot() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsOpen(!isOpen)}
-                className="w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-colors shadow-blue-200 border-2 border-white"
+                className="w-14 h-14 bg-orange-500 hover:bg-orange-600 text-white rounded-full shadow-lg flex items-center justify-center transition-colors shadow-orange-200 border-2 border-white"
             >
                 {isOpen ? <X className="w-6 h-6" /> : <MessageCircle className="w-6 h-6" />}
             </motion.button>

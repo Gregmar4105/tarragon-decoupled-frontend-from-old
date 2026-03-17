@@ -21,12 +21,12 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
     const [showPassword, setShowPassword] = useState(false);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 p-4">
             <Head title="Log in" />
 
             {/* Logo */}
             <div className="flex flex-col items-center mb-8">
-                <div className="bg-blue-600 p-3 rounded-xl mb-3 shadow-lg shadow-blue-600/20">
+                <div className="bg-white p-3 rounded-xl mb-3 shadow-lg shadow-black/5">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -35,18 +35,18 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="w-6 h-6 text-white"
+                        className="w-6 h-6 text-orange-500"
                     >
                         <path d="M6 20h0a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h0" />
                         <path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" />
                     </svg>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900">Tarragon Manila</h1>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mt-1">Luggage Storage Rentals</p>
+                <h1 className="text-xl font-bold text-white tracking-wide">Tarragon Manila</h1>
+                <p className="text-xs text-orange-100 uppercase tracking-widest mt-1">Luggage Storage Rentals</p>
             </div>
 
             {/* Card */}
-            <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+            <div className="w-full max-w-[400px] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8">
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-semibold text-gray-900">Welcome Back</h2>
                     <p className="text-gray-500 mt-2 text-sm">Sign in to continue</p>
@@ -113,7 +113,7 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                                 <div className="flex justify-end">
                                     <Link
                                         href={request()}
-                                        className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                                        className="text-sm text-orange-600 hover:text-orange-700 font-medium"
                                     >
                                         Forgot Password?
                                     </Link>
@@ -122,12 +122,21 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
 
                             <Button
                                 type="submit"
-                                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base shadow-lg shadow-blue-600/20"
+                                className="w-full h-11 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-lg font-semibold text-base shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02]"
                                 disabled={processing}
                             >
                                 {processing && <Spinner className="mr-2" />}
                                 Sign In
                             </Button>
+
+                            {canRegister && (
+                                <div className="mt-4 text-center text-sm text-gray-500">
+                                    Don't have an account?{' '}
+                                    <Link href={register()} className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
+                                        Sign up
+                                    </Link>
+                                </div>
+                            )}
                         </>
                     )}
                 </Form>

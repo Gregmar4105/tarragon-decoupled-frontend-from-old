@@ -17,7 +17,7 @@ export default function About() {
                     <div className="relative bg-gray-50 py-24">
                         <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
                             <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 mb-6">
-                                Our Mission: <span className="text-blue-600">Travel Lighter</span>
+                                Our Mission: <span className="text-orange-500">Travel Lighter</span>
                             </h1>
                             <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
                                 Tarragon Manila provides secure, convenient, and affordable luggage storage solutions for travelers in Metro Manila. We believe exploring the city should be burden-free.
@@ -40,14 +40,14 @@ export default function About() {
 
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
                                         <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                                            <ShieldCheck className="w-8 h-8 text-blue-600 shrink-0" />
+                                            <ShieldCheck className="w-8 h-8 text-orange-500 shrink-0" />
                                             <div>
                                                 <h3 className="font-bold text-gray-900">Secure Storage</h3>
                                                 <p className="text-sm text-gray-500">24/7 CCTV monitoring and strict access control.</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-4 p-4 rounded-xl bg-gray-50">
-                                            <Clock className="w-8 h-8 text-blue-600 shrink-0" />
+                                            <Clock className="w-8 h-8 text-orange-500 shrink-0" />
                                             <div>
                                                 <h3 className="font-bold text-gray-900">24/7 Access</h3>
                                                 <p className="text-sm text-gray-500">Drop off or pick up your trusted items anytime.</p>
@@ -68,7 +68,7 @@ export default function About() {
                                     />
                                     <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-white/50 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                                            <div className="bg-orange-100 p-2 rounded-full text-orange-600">
                                                 <MapPin className="w-5 h-5" />
                                             </div>
                                             <div>
@@ -106,13 +106,13 @@ export default function About() {
                     </div>
 
                     {/* CTA */}
-                    <div className="bg-blue-900 text-white py-20 text-center">
+                    <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-20 text-center">
                         <div className="max-w-3xl mx-auto px-6">
                             <h2 className="text-3xl font-bold mb-6">Have questions?</h2>
-                            <p className="text-blue-100 mb-8">Our support team is available 24/7 to assist you with any inquiries.</p>
+                            <p className="text-orange-50 mb-8">Our support team is available 24/7 to assist you with any inquiries.</p>
                             <div className="flex justify-center gap-4">
                                 <BookingModal>
-                                    <Button size="lg" className="bg-white text-blue-900 hover:bg-gray-100 rounded-full px-8 font-bold">
+                                    <Button size="lg" className="bg-white text-orange-600 hover:bg-gray-100 rounded-full px-8 font-bold">
                                         Book Now
                                     </Button>
                                 </BookingModal>

@@ -31,7 +31,7 @@ export default function Reports({ dailyTrend, sourceDistribution }: Props) {
         <AppLayout breadcrumbs={[{ title: 'Reports', href: '/reports' }]}>
             <Head title="Reports & Analytics" />
 
-            <div className="flex h-full flex-1 flex-col gap-8 p-4 md:p-8 max-w-7xl mx-auto w-full">
+            <div className="flex flex-1 flex-col gap-8 p-4 md:p-8 max-w-7xl mx-auto w-full">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
@@ -39,19 +39,19 @@ export default function Reports({ dailyTrend, sourceDistribution }: Props) {
                             {getDateRangeDescription()}
                         </p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <DateRangePicker
                             dateRange={dateRange}
                             onDateRangeChange={setDateRange}
                         />
-                        <Button className="gap-2 bg-blue-600">
+                        <Button className="w-full sm:w-auto gap-2 bg-orange-500 hover:bg-orange-600 shadow-sm text-white">
                             <Download className="w-4 h-4" /> Export Report
                         </Button>
                     </div>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2">
-                    <Card>
+                    <Card className="overflow-hidden w-full">
                         <CardHeader>
                             <CardTitle>Daily Bookings Trend</CardTitle>
                             <CardDescription>Number of bags stored per day</CardDescription>
@@ -61,7 +61,7 @@ export default function Reports({ dailyTrend, sourceDistribution }: Props) {
                         </CardContent>
                     </Card>
 
-                    <Card>
+                    <Card className="overflow-hidden w-full">
                         <CardHeader>
                             <CardTitle>Booking Sources</CardTitle>
                             <CardDescription>Where your customers are coming from</CardDescription>

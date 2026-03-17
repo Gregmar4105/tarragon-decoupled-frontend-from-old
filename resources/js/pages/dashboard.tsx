@@ -65,7 +65,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 {/* Header Section */}
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                     <div>
@@ -89,7 +89,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                    <Card className="col-span-4">
+                    <Card className="col-span-4 overflow-hidden w-full">
                         <CardHeader>
                             <CardTitle>Overview</CardTitle>
                         </CardHeader>
@@ -101,7 +101,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
                             )}
                         </CardContent>
                     </Card>
-                    <Card className="col-span-3">
+                    <Card className="col-span-3 overflow-hidden w-full">
                         <CardHeader>
                             <CardTitle>Recent Sales</CardTitle>
                             <CardDescription>
@@ -125,7 +125,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
                 </div>
 
                 {/* Recent Bookings Section */}
-                <Card>
+                <Card className="overflow-hidden w-full">
                     <CardHeader className="flex flex-row items-center justify-between">
                         <div>
                             <CardTitle>Recent Bookings</CardTitle>
@@ -136,8 +136,8 @@ export default function Dashboard({ recentBookings = [], recentSales = [] }: Das
                             Export to CSV
                         </Button>
                     </CardHeader>
-                    <CardContent>
-                        <Table>
+                    <CardContent className="overflow-x-auto">
+                        <Table className="min-w-[600px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Booking ID</TableHead>

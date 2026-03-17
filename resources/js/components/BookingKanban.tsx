@@ -33,11 +33,11 @@ interface Props {
 const getCardBorderStyle = (columnId: string) => {
     switch (columnId) {
         case 'booked':
-            return 'border-l-4 border-l-amber-400 border-t border-r border-b border-amber-200 bg-amber-50/50';
+            return 'border-l-4 border-l-yellow-300 border-t border-r border-b border-yellow-200 bg-yellow-50/50';
         case 'checked-in':
-            return 'border-l-4 border-l-blue-500 border-t border-r border-b border-blue-200 bg-blue-50/50';
+            return 'border-l-4 border-l-orange-600 border-t border-r border-b border-orange-200 bg-orange-50/50';
         case 'checked-out':
-            return 'border-l-4 border-l-emerald-500 border-t border-r border-b border-emerald-200 bg-emerald-50/50';
+            return 'border-l-4 border-l-lime-400 border-t border-r border-b border-lime-200 bg-lime-50/50';
         default:
             return 'border-gray-200';
     }
@@ -46,11 +46,11 @@ const getCardBorderStyle = (columnId: string) => {
 const getColumnHeaderStyle = (columnId: string) => {
     switch (columnId) {
         case 'booked':
-            return 'text-amber-700';
+            return 'text-yellow-700';
         case 'checked-in':
-            return 'text-blue-700';
+            return 'text-orange-600';
         case 'checked-out':
-            return 'text-emerald-700';
+            return 'text-lime-600';
         default:
             return 'text-gray-700';
     }
@@ -59,11 +59,11 @@ const getColumnHeaderStyle = (columnId: string) => {
 const getBadgeStyle = (columnId: string) => {
     switch (columnId) {
         case 'booked':
-            return 'bg-amber-100 text-amber-700 border-amber-300';
+            return 'bg-yellow-100 text-yellow-700 border-yellow-300';
         case 'checked-in':
-            return 'bg-blue-100 text-blue-700 border-blue-300';
+            return 'bg-orange-100 text-orange-600 border-orange-300';
         case 'checked-out':
-            return 'bg-emerald-100 text-emerald-700 border-emerald-300';
+            return 'bg-lime-100 text-lime-700 border-lime-300';
         default:
             return '';
     }
@@ -157,14 +157,14 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
 
     return (
         <DragDropContext onDragEnd={onDragEnd}>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-full min-h-[500px]">
+            <div className="grid grid-cols-3 gap-2 w-full h-full min-h-[500px] pb-4">
                 {Object.entries(columns).map(([columnId, items]) => (
-                    <div key={columnId} className="flex flex-col gap-4">
-                        <div className="flex items-center justify-between p-2">
-                            <h3 className={`font-bold capitalize ${getColumnHeaderStyle(columnId)}`}>
+                    <div key={columnId} className="flex flex-col gap-2 w-full">
+                        <div className="flex flex-col xl:flex-row items-center justify-between p-1 xl:p-2 gap-1">
+                            <h3 className={`font-bold capitalize text-center text-[10px] md:text-sm ${getColumnHeaderStyle(columnId)}`}>
                                 {columnId.replace('-', ' ')}
                             </h3>
-                            <Badge variant="outline" className={getBadgeStyle(columnId)}>
+                            <Badge variant="outline" className={`text-[9px] px-1 py-0 h-4 min-w-4 flex items-center justify-center ${getBadgeStyle(columnId)}`}>
                                 {items.length}
                             </Badge>
                         </div>
@@ -173,7 +173,7 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
                                 <div
                                     {...provided.droppableProps}
                                     ref={provided.innerRef}
-                                    className="bg-gray-50/80 rounded-xl p-4 flex flex-col gap-3 min-h-[200px]"
+                                    className="bg-gray-50/80 rounded-lg p-1.5 md:p-4 flex flex-col gap-2 min-h-[200px]"
                                 >
                                     {items.map((item, index) => (
                                         <Draggable key={item.id} draggableId={item.id} index={index}>
@@ -182,21 +182,25 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
                                                     ref={provided.innerRef}
                                                     {...provided.draggableProps}
                                                     {...provided.dragHandleProps}
-                                                    className={`shadow-sm hover:shadow-md transition-all cursor-grab ${getCardBorderStyle(columnId)}`}
+                                                    className={`shadow-sm hover:shadow-md transition-all cursor-grab rounded-md ${getCardBorderStyle(columnId)}`}
                                                 >
-                                                    <CardContent className="p-4 space-y-3">
-                                                        <div className="flex justify-between items-start">
-                                                            <span className="font-mono text-xs text-gray-500 font-bold">{item.id}</span>
-                                                            <Badge variant="outline" className="text-xs">{item.time}</Badge>
+                                                    <CardContent className="p-2 md:p-4">
+                                                        <div className="flex flex-col gap-0.5 overflow-hidden w-full">
+                                                            <span className="font-mono text-[10px] md:text-xs text-gray-500 font-bold truncate w-full" title={item.id}>
+                                                                #{item.id.slice(-6)}
+                                                            </span>
+                                                            <span className="text-[9px] md:text-xs text-gray-400 truncate w-full" title={item.time}>
+                                                                {item.time}
+                                                            </span>
                                                         </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                                                                <User className="w-3.5 h-3.5 text-gray-500" />
-                                                                {item.customer}
+                                                        <div className="flex flex-col gap-1 overflow-hidden mt-1 md:mt-2">
+                                                            <div className="flex items-center gap-1.5 text-[10px] md:text-sm font-semibold text-gray-900 w-full" title={item.customer}>
+                                                                <User className="w-3 h-3 md:w-3.5 md:h-3.5 text-gray-500 shrink-0" />
+                                                                <span className="truncate">{item.customer}</span>
                                                             </div>
-                                                            <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
-                                                                <Package className="w-3.5 h-3.5" />
-                                                                {item.items} Bags
+                                                            <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-gray-500 w-full">
+                                                                <Package className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+                                                                <span className="truncate">{item.items} Bags</span>
                                                             </div>
                                                         </div>
                                                     </CardContent>

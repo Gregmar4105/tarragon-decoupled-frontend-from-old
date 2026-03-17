@@ -5,7 +5,7 @@ interface Props {
     data: Array<{ name: string; value: number }>;
 }
 
-const COLORS = ['#2563eb', '#16a34a', '#eab308'];
+const COLORS = ['#f97316', '#f59e0b', '#fbbf24'];
 
 export function SourcePieChart({ data }: Props) {
     return (

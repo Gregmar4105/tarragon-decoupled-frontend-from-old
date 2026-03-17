@@ -73,7 +73,7 @@ export function RevenueChart() {
                     cursor={{ fill: 'transparent' }}
                     contentStyle={{ borderRadius: '8px', border: '1px solid #e2e8f0' }}
                 />
-                <Bar dataKey="total" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="total" fill="#f97316" radius={[4, 4, 0, 0]} />
             </BarChart>
         </ResponsiveContainer>
     )

@@ -69,13 +69,13 @@ export default function Transactions({ initialTransactions, stats }: Props) {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Transactions & Export" />
-            <div className="flex h-full flex-1 flex-col gap-6 p-4 md:p-6">
+            <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
                 <h1 className="text-2xl font-bold tracking-tight">Transactions & Export</h1>
 
                 {/* Filters */}
                 <Card>
                     <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-end flex-wrap">
-                        <div className="flex flex-col gap-2 flex-1 min-w-[300px]">
+                        <div className="flex flex-col gap-2 w-full md:flex-1 md:min-w-[300px]">
                             <span className="text-sm font-medium">Date Range</span>
                             <DateRangePicker
                                 dateRange={dateRange}
@@ -110,7 +110,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                             </Select>
                         </div>
 
-                        <Button className="bg-blue-600 hover:bg-blue-700 text-white gap-2 whitespace-nowrap">
+                        <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm">
                             <Download className="h-4 w-4" />
                             Export to CSV
                         </Button>
@@ -143,9 +143,9 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                 </div>
 
                 {/* Table */}
-                <Card>
-                    <CardContent className="p-0">
-                        <Table>
+                <Card className="overflow-hidden w-full">
+                    <CardContent className="p-0 overflow-x-auto">
+                        <Table className="min-w-[800px]">
                             <TableHeader>
                                 <TableRow>
                                     <TableHead>Transaction ID</TableHead>

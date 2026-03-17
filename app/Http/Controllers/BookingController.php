@@ -63,15 +63,7 @@ class BookingController extends Controller
 
         try {
             DB::transaction(function () use ($validated, &$booking) {
-                // Dynamic fallback for branch/plan setup
-                $branch = \Illuminate\Support\Facades\DB::table('branches')->first();
-                if (!$branch) {
-                    $branchId = \Illuminate\Support\Facades\DB::table('branches')->insertGetId([
-                        'name' => 'Main', 'slug' => 'main', 'address' => '123 Main', 'city' => 'MNL', 'zip' => '1000', 'country' => 'PH', 'capacity' => 100, 'is_active' => 1, 'created_at' => now(), 'updated_at' => now()
-                    ]);
-                } else {
-                    $branchId = $branch->id;
-                }
+                // No branches to check or insert
 
                 $plan = \Illuminate\Support\Facades\DB::table('plans')->first();
                 if (!$plan) {
@@ -83,7 +75,6 @@ class BookingController extends Controller
                 }
 
                 $booking = Booking::create([
-                    'branch_id' => $branchId,
                     'plan_id' => $planId,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => $validated['customer_email'],

@@ -14,12 +14,12 @@ export default function Register() {
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4 dark:bg-zinc-950">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 p-4 dark:bg-zinc-950">
             <Head title="Register" />
 
             {/* Logo */}
             <div className="flex flex-col items-center mb-8">
-                <div className="bg-blue-600 p-3 rounded-xl mb-3 shadow-lg shadow-blue-600/20">
+                <div className="bg-white p-3 rounded-xl mb-3 shadow-lg shadow-black/5">
                     <svg
                         xmlns="http://www.w3.org/2000/svg"
                         viewBox="0 0 24 24"
@@ -28,18 +28,18 @@ export default function Register() {
                         strokeWidth="2"
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        className="w-6 h-6 text-white"
+                        className="w-6 h-6 text-orange-500 dark:text-orange-400"
                     >
                         <path d="M6 20h0a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h0" />
                         <path d="M8 18V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v14" />
                     </svg>
                 </div>
-                <h1 className="text-xl font-bold text-gray-900 dark:text-white">Tarragon Manila</h1>
-                <p className="text-xs text-gray-500 uppercase tracking-wider mt-1 dark:text-gray-400">Luggage Storage Rentals</p>
+                <h1 className="text-xl font-bold text-white tracking-wide dark:text-white">Tarragon Manila</h1>
+                <p className="text-xs text-orange-100 uppercase tracking-widest mt-1 dark:text-gray-400">Luggage Storage Rentals</p>
             </div>
 
             {/* Card */}
-            <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-sm border border-gray-100 p-8 dark:bg-zinc-900 dark:border-zinc-800">
+            <div className="w-full max-w-[400px] bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/20 p-8 dark:bg-zinc-900 dark:border-zinc-800">
                 <div className="text-center mb-8">
                     <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">Create Account</h2>
                     <p className="text-gray-500 mt-2 text-sm dark:text-gray-400">Join us today</p>
@@ -140,7 +140,7 @@ export default function Register() {
 
                             <Button
                                 type="submit"
-                                className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-base shadow-lg shadow-blue-600/20 dark:bg-blue-600 dark:hover:bg-blue-700"
+                                className="w-full h-11 bg-gradient-to-r from-orange-500 to-yellow-500 hover:from-orange-600 hover:to-yellow-600 text-white rounded-lg font-semibold text-base shadow-lg shadow-orange-500/20 transition-all hover:scale-[1.02] dark:bg-orange-600 dark:hover:bg-orange-700"
                                 disabled={processing}
                             >
                                 {processing && <Spinner className="mr-2" />}
@@ -158,7 +158,7 @@ export default function Register() {
 
                             <div className="text-center text-sm">
                                 <span className="text-gray-500 dark:text-gray-400">Already have an account? </span>
-                                <Link href={login()} className="text-blue-600 hover:text-blue-700 font-medium dark:text-blue-500 dark:hover:text-blue-400">
+                                <Link href={login()} className="text-orange-600 hover:text-orange-700 font-medium dark:text-orange-500 dark:hover:text-orange-400">
                                     Sign in
                                 </Link>
                             </div>

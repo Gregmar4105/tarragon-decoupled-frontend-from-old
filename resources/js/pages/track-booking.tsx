@@ -52,7 +52,7 @@ export default function TrackBooking() {
                                         onChange={(e) => setBookingId(e.target.value)}
                                     />
                                 </div>
-                                <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold h-11" type="submit">
+                                <Button className="w-full bg-orange-500 hover:bg-orange-600 shadow-md text-white font-bold h-11 transition-all" type="submit">
                                     Find Booking
                                 </Button>
                             </form>
@@ -88,7 +88,7 @@ export default function TrackBooking() {
                                         <ShieldCheck className="w-5 h-5" />
                                         <span>Status</span>
                                     </div>
-                                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-bold uppercase">{bookingData.status}</span>
+                                    <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded-full text-xs font-bold uppercase">{bookingData.status}</span>
                                 </div>
                                 <div className="flex justify-between items-center py-2">
                                     <div className="flex items-center gap-3 text-gray-600">

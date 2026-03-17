@@ -67,11 +67,11 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                         {step === 1 ? "Select Dates" : step === 2 ? "Add Bags" : "Customer Details"}
                     </DialogTitle>
                     <div className="flex items-center gap-2 mr-2 md:mr-8">
-                        <div className={`h-2 w-2 rounded-full ${step >= 1 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-                        <div className={`h-1 w-4 md:w-8 rounded-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-100'}`} />
-                        <div className={`h-2 w-2 rounded-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
-                        <div className={`h-1 w-4 md:w-8 rounded-full ${step === 3 ? 'bg-blue-600' : 'bg-gray-100'}`} />
-                        <div className={`h-2 w-2 rounded-full ${step === 3 ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step >= 1 ? 'bg-orange-500' : 'bg-gray-200'}`} />
+                        <div className={`h-1 w-4 md:w-8 rounded-full ${step >= 2 ? 'bg-orange-500' : 'bg-gray-100'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step >= 2 ? 'bg-orange-500' : 'bg-gray-200'}`} />
+                        <div className={`h-1 w-4 md:w-8 rounded-full ${step === 3 ? 'bg-orange-500' : 'bg-gray-100'}`} />
+                        <div className={`h-2 w-2 rounded-full ${step === 3 ? 'bg-orange-500' : 'bg-gray-200'}`} />
                     </div>
                 </DialogHeader>
 
@@ -84,7 +84,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                             <div className="space-y-6 md:space-y-8 animate-in slide-in-from-left-4 fade-in duration-300">
                                 <div className="space-y-4">
                                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-blue-600" /> Drop-off
+                                        <Calendar className="w-4 h-4 text-orange-500" /> Drop-off
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Input type="date" value={dates.dropoffDate} onChange={(e) => updateDate('dropoffDate', e.target.value)} className="h-12 w-full" />
@@ -100,7 +100,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                 </div>
                                 <div className="space-y-4">
                                     <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                                        <Calendar className="w-4 h-4 text-blue-600" /> Pick-up
+                                        <Calendar className="w-4 h-4 text-orange-500" /> Pick-up
                                     </h3>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                         <Input type="date" value={dates.pickupDate} onChange={(e) => updateDate('pickupDate', e.target.value)} className="h-12 w-full" />
@@ -126,11 +126,11 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                         { id: 'medium', label: 'Medium Bag', desc: 'Carry-on suitcase, large backpack', price: PRICES.medium },
                                         { id: 'large', label: 'Large Bag', desc: 'Checked suitcase, equipment', price: PRICES.large }
                                     ].map((item) => (
-                                        <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl hover:border-blue-300 transition-colors bg-white gap-4">
+                                        <div key={item.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 border rounded-xl hover:border-orange-300 transition-colors bg-white gap-4">
                                             <div>
                                                 <p className="font-bold text-gray-900">{item.label}</p>
                                                 <p className="text-sm text-gray-500">{item.desc}</p>
-                                                <p className="text-blue-600 font-semibold mt-1">{format(item.price)}/day</p>
+                                                <p className="text-orange-600 font-semibold mt-1">{format(item.price)}/day</p>
                                             </div>
                                             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
                                                 <Button variant="outline" size="icon" className="h-8 w-8 rounded-full" onClick={() => updateCount(item.id as any, -1)}>
@@ -212,7 +212,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                     <span className="font-bold text-gray-900">Total</span>
                                     <span className="lg:hidden text-xs text-muted-foreground">{counts.small + counts.medium + counts.large} items</span>
                                 </div>
-                                <span className="text-2xl font-extrabold text-blue-600">{format(subtotal)}</span>
+                                <span className="text-2xl font-extrabold text-orange-600">{format(subtotal)}</span>
                             </div>
 
                             <div className="flex gap-3">
@@ -222,11 +222,11 @@ export default function BookingModal({ children }: { children: React.ReactNode }
                                     </Button>
                                 )}
                                 {step < 3 ? (
-                                    <Button onClick={nextStep} className="flex-[2] h-12 bg-blue-600 hover:bg-blue-700 font-bold">
+                                    <Button onClick={nextStep} className="flex-[2] h-12 bg-orange-500 hover:bg-orange-600 font-bold">
                                         Continue <ArrowRight className="w-4 h-4 ml-2" />
                                     </Button>
                                 ) : (
-                                    <Button onClick={handleBooking} className="flex-[2] h-12 bg-blue-600 hover:bg-blue-700 font-bold shadow-lg shadow-blue-200">
+                                    <Button onClick={handleBooking} className="flex-[2] h-12 bg-orange-500 hover:bg-orange-600 font-bold shadow-lg shadow-orange-200">
                                         Confirm Booking
                                     </Button>
                                 )}

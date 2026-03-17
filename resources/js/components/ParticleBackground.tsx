@@ -17,12 +17,12 @@ interface Particle {
 }
 
 const COLORS = [
-    'rgba(59, 130, 246, ',   // blue-500
-    'rgba(99, 102, 241, ',   // indigo-500
-    'rgba(147, 197, 253, ',  // blue-300
-    'rgba(165, 180, 252, ',  // indigo-300
-    'rgba(37, 99, 235, ',    // blue-600
-    'rgba(79, 70, 229, ',    // indigo-600
+    'rgba(249, 115, 22, ',   // orange-500
+    'rgba(251, 146, 60, ',   // orange-400
+    'rgba(253, 186, 116, ',  // orange-300
+    'rgba(252, 211, 77, ',   // amber-300
+    'rgba(245, 158, 11, ',   // amber-500
+    'rgba(217, 119, 6, ',    // amber-600
 ];
 
 const PARTICLE_COUNT = 45;

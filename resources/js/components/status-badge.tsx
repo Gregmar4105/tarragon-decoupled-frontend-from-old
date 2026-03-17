@@ -16,7 +16,7 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
         "checked-in": "bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-indigo-200",
         "checked-out": "bg-green-100 text-green-800 hover:bg-green-100 border-green-200",
         pending: "bg-yellow-100 text-yellow-800 hover:bg-yellow-100 border-yellow-200",
-        processing: "bg-blue-100 text-blue-800 hover:bg-blue-100 border-blue-200",
+        processing: "bg-orange-100 text-orange-800 hover:bg-orange-100 border-orange-200",
         completed: "bg-green-100 text-green-800 hover:bg-green-100 border-green-200",
         cancelled: "bg-red-100 text-red-800 hover:bg-red-100 border-red-200",
         stored: "bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-indigo-200",
