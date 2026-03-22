@@ -64,6 +64,7 @@ interface BookingInterface {
     bags: Bags;
     amount: number;
     status: string;
+    payment_status: string;
     source: string;
     checkIn: string;
     checkOut: string;
@@ -167,18 +168,29 @@ export default function Bookings({ initialBookings }: Props) {
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
                                     <Select defaultValue="all">
-                                        <SelectTrigger className="w-full md:w-[180px]">
+                                        <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Status" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Statuses</SelectItem>
-                                            <SelectItem value="booked">Booked</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
                                             <SelectItem value="checked-in">Checked-in</SelectItem>
                                             <SelectItem value="checked-out">Checked-out</SelectItem>
+                                            <SelectItem value="cancelled">Cancelled</SelectItem>
                                         </SelectContent>
                                     </Select>
                                     <Select defaultValue="all">
-                                        <SelectTrigger className="w-full md:w-[180px]">
+                                        <SelectTrigger className="w-full md:w-[160px]">
+                                            <SelectValue placeholder="Payment" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Payments</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="paid">Paid</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Select defaultValue="all">
+                                        <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Source" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -226,6 +238,7 @@ export default function Bookings({ initialBookings }: Props) {
                                             <TableHead>Bags</TableHead>
                                             <TableHead>Amount</TableHead>
                                             <TableHead>Status</TableHead>
+                                            <TableHead>Payment</TableHead>
                                             <TableHead>Source</TableHead>
                                             <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
@@ -245,6 +258,9 @@ export default function Bookings({ initialBookings }: Props) {
                                                 <TableCell>{format(booking.amount)}</TableCell>
                                                 <TableCell>
                                                     <StatusBadge status={booking.status} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <StatusBadge status={booking.payment_status} />
                                                 </TableCell>
                                                 <TableCell>{booking.source}</TableCell>
                                                 <TableCell className="text-right">

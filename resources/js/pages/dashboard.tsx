@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
-import { Luggage, ScanBarcode, Download, Banknote, UserCheck, Clock, ArrowUpRight } from 'lucide-react';
+import { Luggage, ScanBarcode, Download, Banknote, UserCheck, Clock, ArrowUpRight, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import BookingModal from '@/components/BookingModal';
 import { RevenueChart } from '@/components/RevenueChart';
 import { StatsCard } from '@/components/stats-card';
 import { Button } from '@/components/ui/button';
@@ -59,6 +60,7 @@ interface DashboardProps {
     recentBookings: RecentBooking[];
     recentSales: RecentSale[];
     stats: DashboardStats;
+    pricing?: { small: number; medium: number; large: number; plus: number };
 }
 
 export default function Dashboard({ recentBookings = [], recentSales = [], stats }: DashboardProps) {
@@ -111,7 +113,12 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
                         <p className="text-muted-foreground">Manage your luggage storage operations.</p>
                     </div>
-
+                    <BookingModal>
+                        <button className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition-colors">
+                            <Plus className="h-4 w-4" />
+                            New Booking
+                        </button>
+                    </BookingModal>
                 </div>
 
                 {/* Stats Grid */}

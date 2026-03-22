@@ -35,6 +35,7 @@ class BookingController extends Controller
                 'amount' => (float) $booking->total_price,
                 // Status mapping from database to UI expected labels
                 'status' => ucfirst(str_replace(['dropped_off', 'completed', '_'], ['checked-in', 'checked-out', '-'], $booking->status)), 
+                'payment_status' => ucfirst($booking->payment_status ?? 'pending'),
                 'source' => ucfirst($booking->source),
                 'checkIn' => Carbon::parse($booking->drop_off_time)->format('Y-m-d h:i A'),
                 'checkOut' => Carbon::parse($booking->pick_up_time)->format('Y-m-d h:i A'),
@@ -128,6 +129,7 @@ class BookingController extends Controller
 
                 $booking = Booking::create([
                     'plan_id' => $planId,
+                    'branch_id' => $branchId,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => $validated['customer_email'],
                     'customer_phone' => $validated['customer_phone'] ?? null,
@@ -229,22 +231,14 @@ class BookingController extends Controller
                     $validated['pick_up_time'] = Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s');
                 }
 
-                // Map 'checked-in' and 'checked-out' to database-compatible strings
+                // Map UI statuses to database-compatible strings
                 if (isset($validated['status'])) {
                     $statusStr = strtolower($validated['status']);
                     if ($statusStr === 'checked-in') {
                         $statusStr = 'dropped_off';
-                        $validated['payment_status'] = 'paid';
                     }
                     if ($statusStr === 'checked-out') {
                         $statusStr = 'completed';
-                        $validated['payment_status'] = 'paid'; // Assured
-                    }
-                    if ($statusStr === 'pending') {
-                        $validated['payment_status'] = 'pending';
-                    }
-                    if ($statusStr === 'completed') {
-                        $validated['payment_status'] = 'paid';
                     }
                     $validated['status'] = $statusStr;
                 }
