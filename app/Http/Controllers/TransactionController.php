@@ -27,9 +27,13 @@ class TransactionController extends Controller
             ];
         });
 
-        // Basic stats calculations
-        $totalRevenue = $query->sum('amount');
-        $totalTransactions = $query->count();
+        // Basic stats calculations for paid bookings only
+        $statsQuery = (clone $query)->whereHas('booking', function ($q) {
+            $q->where('payment_status', 'paid');
+        });
+
+        $totalRevenue = $statsQuery->sum('amount');
+        $totalTransactions = $statsQuery->count();
         $averageTransaction = $totalTransactions > 0 ? $totalRevenue / $totalTransactions : 0;
 
         return Inertia::render('transactions/index', [

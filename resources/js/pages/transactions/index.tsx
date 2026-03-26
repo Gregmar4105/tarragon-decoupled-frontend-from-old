@@ -1,7 +1,7 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { subDays } from 'date-fns';
 import { Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { DateRangePicker } from '@/components/DateRangePicker';
 import { StatusBadge } from '@/components/status-badge';
@@ -60,6 +60,14 @@ export default function Transactions({ initialTransactions, stats }: Props) {
         from: subDays(new Date(), 30),
         to: new Date(),
     });
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['initialTransactions', 'stats'] });
+        }, 15000); // Poll every 15 seconds
+
+        return () => clearInterval(interval);
+    }, []);
 
     // Provide default fallback values if stats are missing
     const totalRevenue = stats?.totalRevenue || 0;
