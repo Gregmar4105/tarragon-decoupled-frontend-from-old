@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrency } from "@/context/CurrencyContext";
 
-export default function BookingModal({ children }: { children: React.ReactNode }) {
+const DEFAULT_PRICES = { small: 5, medium: 10, large: 15, plus: 20 };
+
+export default function BookingModal({ children, source = 'online' }: { children: React.ReactNode, source?: 'online' | 'admin' }) {
     const { props } = usePage() as any;
-    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 20 }; // Fallback
+    const PRICES = props.pricing || DEFAULT_PRICES; // Fallback
     const { format, convert } = useCurrency();
 
     const [step, setStep] = useState(1);
@@ -99,7 +101,7 @@ export default function BookingModal({ children }: { children: React.ReactNode }
             pick_up_time: formatDateTime(dates.pickupDate, dates.pickupTime),
             total_price: subtotal,
             items: counts,
-            source: 'admin',
+            source: source,
         }, {
             onSuccess: () => {
                 setStep(1);

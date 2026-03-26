@@ -121,7 +121,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
                         <p className="text-muted-foreground">Manage your luggage storage operations.</p>
                     </div>
-                    <BookingModal>
+                    <BookingModal source="admin">
                         <button className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition-colors">
                             <Plus className="h-4 w-4" />
                             New Booking

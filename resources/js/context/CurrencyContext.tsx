@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
 type Currency = 'USD' | 'PHP';
 
@@ -33,13 +33,15 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
         return currency === 'USD' ? amountInUSD : amountInUSD * EXCHANGE_RATE;
     };
 
+    const formatter = useMemo(() => new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: currency,
+        minimumFractionDigits: 2
+    }), [currency]);
+
     const format = (amountInUSD: number) => {
         const converted = convert(amountInUSD);
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: currency,
-            minimumFractionDigits: 2
-        }).format(converted);
+        return formatter.format(converted);
     };
 
     return (

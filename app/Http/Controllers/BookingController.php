@@ -136,7 +136,7 @@ class BookingController extends Controller
                     'drop_off_time' => Carbon::parse($validated['drop_off_time'])->format('Y-m-d H:i:s'),
                     'pick_up_time' => Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s'),
                     'total_price' => $validated['total_price'],
-                    'status' => 'pending',
+                    'status' => $request->input('source') === 'admin' ? 'dropped_off' : 'pending',
                     'payment_status' => 'pending',
                     'source' => $request->input('source') === 'admin' ? 'walk-in' : 'online',
                     'booking_reference' => 'BK' . strtoupper(uniqid()),
