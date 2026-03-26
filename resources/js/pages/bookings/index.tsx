@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Search,
     Plus,
@@ -98,6 +98,14 @@ export default function Bookings({ initialBookings }: Props) {
         }
     }, [initialBookings]);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['initialBookings'] });
+        }, 15000); // 15 seconds polling
+
+        return () => clearInterval(interval);
+    }, []);
+
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
         setBookings(currentBookings =>
             currentBookings.map(booking =>
@@ -107,6 +115,8 @@ export default function Bookings({ initialBookings }: Props) {
             )
         );
     };
+
+    const activeCount = bookings.filter(b => b.status.toLowerCase() === 'checked-in').length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -209,7 +219,7 @@ export default function Bookings({ initialBookings }: Props) {
                                 <CardContent className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                                        <p className="text-2xl font-bold">1,248</p>
+                                        <p className="text-2xl font-bold">{bookings.length}</p>
                                     </div>
                                     <Briefcase className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>
@@ -218,7 +228,7 @@ export default function Bookings({ initialBookings }: Props) {
                                 <CardContent className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-muted-foreground">Active Now</p>
-                                        <p className="text-2xl font-bold">42</p>
+                                        <p className="text-2xl font-bold">{activeCount}</p>
                                     </div>
                                     <Clock className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>

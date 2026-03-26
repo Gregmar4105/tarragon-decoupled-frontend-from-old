@@ -1,4 +1,4 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { Luggage, ScanBarcode, Download, Banknote, UserCheck, Clock, ArrowUpRight, Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import BookingModal from '@/components/BookingModal';
@@ -69,7 +69,15 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000); // Mock loading delay
-        return () => clearTimeout(timer);
+
+        const interval = setInterval(() => {
+            router.reload({ only: ['stats', 'recentBookings', 'recentSales'] });
+        }, 15000); // Poll every 15 seconds
+
+        return () => {
+            clearTimeout(timer);
+            clearInterval(interval);
+        };
     }, []);
 
     const statCards = stats ? [
