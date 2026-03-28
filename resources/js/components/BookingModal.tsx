@@ -7,9 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrency } from "@/context/CurrencyContext";
 
-export default function BookingModal({ children }: { children: React.ReactNode }) {
+const DEFAULT_PRICES = { small: 5, medium: 10, large: 15, plus: 20 };
+
+export default function BookingModal({ children, source = 'online' }: { children: React.ReactNode, source?: 'online' | 'admin' }) {
     const { props } = usePage() as any;
-    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 20 }; // Fallback
+    const PRICES = props.pricing || DEFAULT_PRICES; // Fallback
     const { format, convert } = useCurrency();
 
     const [step, setStep] = useState(1);
@@ -80,16 +82,34 @@ export default function BookingModal({ children }: { children: React.ReactNode }
     const nextStep = () => setStep(s => Math.min(3, s + 1));
     const prevStep = () => setStep(s => Math.max(1, s - 1));
 
+    const formatDateTime = (dateStr: string, timeStr: string): string => {
+        if (!dateStr || !timeStr) return dateStr || '';
+        const [timePart, modifier] = timeStr.split(/(am|pm)/i);
+        let hours = parseInt(timePart, 10);
+        if (modifier.toLowerCase() === 'pm' && hours !== 12) hours += 12;
+        if (modifier.toLowerCase() === 'am' && hours === 12) hours = 0;
+        const hh = String(hours).padStart(2, '0');
+        return `${dateStr} ${hh}:00:00`;
+    };
+
     const handleBooking = () => {
-        // Send actual payload to our new endpoint
         router.post('/bookings', {
             customer_name: `${customer.firstName} ${customer.lastName}`.trim(),
             customer_email: customer.email,
             customer_phone: customer.phone,
-            drop_off_time: `${dates.dropoffDate} ${dates.dropoffTime}`,
-            pick_up_time: `${dates.pickupDate} ${dates.pickupTime}`,
+            drop_off_time: formatDateTime(dates.dropoffDate, dates.dropoffTime),
+            pick_up_time: formatDateTime(dates.pickupDate, dates.pickupTime),
             total_price: subtotal,
-            items: counts
+            items: counts,
+            source: source,
+        }, {
+            onSuccess: () => {
+                setStep(1);
+                setCounts({ small: 0, medium: 1, large: 0, plus: 0 });
+                setCustomer({ firstName: '', lastName: '', email: '', phone: '' });
+                setDates({ dropoffDate: '', dropoffTime: '', pickupDate: '', pickupTime: '' });
+                setSubtotal(0);
+            },
         });
     };
 

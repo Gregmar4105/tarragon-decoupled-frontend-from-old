@@ -15,6 +15,7 @@ interface BookingInterface {
     bags: Record<string, number>;
     amount: number;
     status: string;
+    payment_status: string;
     source: string;
     checkIn: string;
     checkOut: string;
@@ -54,6 +55,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         drop_off_time: '',
         pick_up_time: '',
         status: '',
+        payment_status: '',
         total_price: 0
     });
 
@@ -71,6 +73,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                 drop_off_time: formatForInput(booking.checkIn),
                 pick_up_time: formatForInput(booking.checkOut),
                 status: booking.status.toLowerCase(),
+                payment_status: booking.payment_status?.toLowerCase() || 'pending',
                 total_price: booking.amount,
             });
             clearErrors();
@@ -172,14 +175,26 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="confirmed">Confirmed</SelectItem>
                                     <SelectItem value="checked-in">Checked-in</SelectItem>
                                     <SelectItem value="checked-out">Checked-out</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
                                     <SelectItem value="cancelled">Cancelled</SelectItem>
                                 </SelectContent>
                             </Select>
                             {errors.status && <span className="col-span-4 text-xs text-red-500 text-right">{errors.status}</span>}
+                        </div>
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label className="text-right">Payment</Label>
+                            <Select value={data.payment_status} onValueChange={(val) => setData('payment_status', val)}>
+                                <SelectTrigger className="col-span-3">
+                                    <SelectValue placeholder="Payment Status" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="pending">Pending</SelectItem>
+                                    <SelectItem value="paid">Paid</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {errors.payment_status && <span className="col-span-4 text-xs text-red-500 text-right">{errors.payment_status}</span>}
                         </div>
 
                         <div className="border-t pt-4 mt-2">

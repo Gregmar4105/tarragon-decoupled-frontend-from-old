@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import {
     Search,
     Plus,
@@ -60,10 +60,12 @@ interface Bags {
 interface BookingInterface {
     id: string;
     customer: string;
+    email: string;
     contact: string;
     bags: Bags;
     amount: number;
     status: string;
+    payment_status: string;
     source: string;
     checkIn: string;
     checkOut: string;
@@ -75,7 +77,15 @@ interface Props {
 
 export default function Bookings({ initialBookings }: Props) {
     const { format } = useCurrency();
-    const [search, setSearch] = useState('');
+    
+    // Initialize filters from URL
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [status, setStatus] = useState(searchParams.get('status') || 'all');
+    const [payment, setPayment] = useState(searchParams.get('payment') || 'all');
+    const [source, setSource] = useState(searchParams.get('source') || 'all');
+    
     const [view, setView] = useState<'list' | 'board'>('list');
 
     // Scanner State
@@ -87,15 +97,45 @@ export default function Bookings({ initialBookings }: Props) {
 
     const [bookings, setBookings] = useState<BookingInterface[]>(initialBookings || []);
 
+    // Load initial parameters if present
     useEffect(() => {
         setBookings(initialBookings || []);
         
-        const searchParams = new URLSearchParams(window.location.search);
-        if (searchParams.get('scan') === 'true') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('scan') === 'true') {
             setIsScannerOpen(true);
-            window.history.replaceState({}, document.title, window.location.pathname);
+            params.delete('scan');
+            window.history.replaceState({}, document.title, `${window.location.pathname}?${params.toString()}`);
         }
     }, [initialBookings]);
+
+    // Apply filtering
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            const query: Record<string, string> = {};
+            if (search) query.search = search;
+            if (status !== 'all') query.status = status;
+            if (payment !== 'all') query.payment = payment;
+            if (source !== 'all') query.source = source;
+
+            router.get(window.location.pathname, query, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, status, payment, source]);
+
+    // Polling
+    useEffect(() => {
+        const interval = setInterval(() => {
+            router.reload({ only: ['initialBookings'] });
+        }, 15000); // 15 seconds polling
+
+        return () => clearInterval(interval);
+    }, []);
 
     const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
         setBookings(currentBookings =>
@@ -106,6 +146,8 @@ export default function Bookings({ initialBookings }: Props) {
             )
         );
     };
+
+    const activeCount = bookings.filter(b => b.status.toLowerCase() === 'checked-in').length;
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -166,19 +208,30 @@ export default function Bookings({ initialBookings }: Props) {
                                     />
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                                    <Select defaultValue="all">
-                                        <SelectTrigger className="w-full md:w-[180px]">
+                                    <Select value={status} onValueChange={setStatus}>
+                                        <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Status" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Statuses</SelectItem>
-                                            <SelectItem value="booked">Booked</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
                                             <SelectItem value="checked-in">Checked-in</SelectItem>
                                             <SelectItem value="checked-out">Checked-out</SelectItem>
+                                            <SelectItem value="cancelled">Cancelled</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <Select defaultValue="all">
-                                        <SelectTrigger className="w-full md:w-[180px]">
+                                    <Select value={payment} onValueChange={setPayment}>
+                                        <SelectTrigger className="w-full md:w-[160px]">
+                                            <SelectValue placeholder="Payment" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Payments</SelectItem>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="paid">Paid</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    <Select value={source} onValueChange={setSource}>
+                                        <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Source" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -197,7 +250,7 @@ export default function Bookings({ initialBookings }: Props) {
                                 <CardContent className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-muted-foreground">Total Bookings</p>
-                                        <p className="text-2xl font-bold">1,248</p>
+                                        <p className="text-2xl font-bold">{bookings.length}</p>
                                     </div>
                                     <Briefcase className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>
@@ -206,7 +259,7 @@ export default function Bookings({ initialBookings }: Props) {
                                 <CardContent className="p-6 flex flex-row items-center justify-between space-y-0 pb-2">
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium text-muted-foreground">Active Now</p>
-                                        <p className="text-2xl font-bold">42</p>
+                                        <p className="text-2xl font-bold">{activeCount}</p>
                                     </div>
                                     <Clock className="h-4 w-4 text-muted-foreground" />
                                 </CardContent>
@@ -222,10 +275,12 @@ export default function Bookings({ initialBookings }: Props) {
                                         <TableRow>
                                             <TableHead>Booking ID</TableHead>
                                             <TableHead>Customer</TableHead>
+                                            <TableHead>Email</TableHead>
                                             <TableHead>Contact</TableHead>
                                             <TableHead>Bags</TableHead>
                                             <TableHead>Amount</TableHead>
                                             <TableHead>Status</TableHead>
+                                            <TableHead>Payment</TableHead>
                                             <TableHead>Source</TableHead>
                                             <TableHead className="text-right">Actions</TableHead>
                                         </TableRow>
@@ -235,6 +290,7 @@ export default function Bookings({ initialBookings }: Props) {
                                             <TableRow key={booking.id}>
                                                 <TableCell className="font-medium">{booking.id}</TableCell>
                                                 <TableCell>{booking.customer}</TableCell>
+                                                <TableCell>{booking.email}</TableCell>
                                                 <TableCell>{booking.contact}</TableCell>
                                                 <TableCell>
                                                     {Object.entries(booking.bags)
@@ -245,6 +301,9 @@ export default function Bookings({ initialBookings }: Props) {
                                                 <TableCell>{format(booking.amount)}</TableCell>
                                                 <TableCell>
                                                     <StatusBadge status={booking.status} />
+                                                </TableCell>
+                                                <TableCell>
+                                                    <StatusBadge status={booking.payment_status} />
                                                 </TableCell>
                                                 <TableCell>{booking.source}</TableCell>
                                                 <TableCell className="text-right">
@@ -281,19 +340,6 @@ export default function Bookings({ initialBookings }: Props) {
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                     <p>Edit Booking</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Delete Booking</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>

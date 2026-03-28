@@ -82,9 +82,17 @@ Route::get('bookings', [BookingController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('bookings');
 
+Route::get('transactions/export', [TransactionController::class, 'export'])
+    ->middleware(['auth', 'verified'])
+    ->name('transactions.export');
+
 Route::get('transactions', [TransactionController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('transactions');
+
+Route::get('reports/export', [ReportController::class, 'export'])
+    ->middleware(['auth', 'verified'])
+    ->name('reports.export');
 
 Route::get('reports', [ReportController::class, 'index'])
     ->middleware(['auth', 'verified'])

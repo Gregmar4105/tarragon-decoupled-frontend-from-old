@@ -15,9 +15,34 @@ class BookingController extends Controller
     /**
      * Display a listing of bookings.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('items')->orderBy('created_at', 'desc')->get();
+        $query = Booking::with('items')->orderBy('created_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('booking_reference', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $status = str_replace(['checked-in', 'checked-out'], ['dropped_off', 'completed'], strtolower($request->input('status')));
+            $query->where('status', $status);
+        }
+
+        if ($request->filled('payment') && $request->input('payment') !== 'all') {
+            $query->where('payment_status', strtolower($request->input('payment')));
+        }
+
+        if ($request->filled('source') && $request->input('source') !== 'all') {
+            $query->where('source', strtolower($request->input('source')));
+        }
+
+        $bookings = $query->get();
 
         $mappedBookings = $bookings->map(function ($booking) {
             $bags = [
@@ -30,11 +55,13 @@ class BookingController extends Controller
             return [
                 'id' => $booking->booking_reference,
                 'customer' => $booking->customer_name,
-                'contact' => $booking->customer_phone ?? $booking->customer_email,
+                'email' => $booking->customer_email,
+                'contact' => $booking->customer_phone ?? '-',
                 'bags' => $bags,
                 'amount' => (float) $booking->total_price,
                 // Status mapping from database to UI expected labels
                 'status' => ucfirst(str_replace(['dropped_off', 'completed', '_'], ['checked-in', 'checked-out', '-'], $booking->status)), 
+                'payment_status' => ucfirst($booking->payment_status ?? 'pending'),
                 'source' => ucfirst($booking->source),
                 'checkIn' => Carbon::parse($booking->drop_off_time)->format('Y-m-d h:i A'),
                 'checkOut' => Carbon::parse($booking->pick_up_time)->format('Y-m-d h:i A'),
@@ -119,13 +146,14 @@ class BookingController extends Controller
 
                 $booking = Booking::create([
                     'plan_id' => $planId,
+                    'branch_id' => $branchId,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => $validated['customer_email'],
                     'customer_phone' => $validated['customer_phone'] ?? null,
                     'drop_off_time' => Carbon::parse($validated['drop_off_time'])->format('Y-m-d H:i:s'),
                     'pick_up_time' => Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s'),
                     'total_price' => $validated['total_price'],
-                    'status' => 'pending',
+                    'status' => $request->input('source') === 'admin' ? 'dropped_off' : 'pending',
                     'payment_status' => 'pending',
                     'source' => $request->input('source') === 'admin' ? 'walk-in' : 'online',
                     'booking_reference' => 'BK' . strtoupper(uniqid()),
@@ -220,22 +248,14 @@ class BookingController extends Controller
                     $validated['pick_up_time'] = Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s');
                 }
 
-                // Map 'checked-in' and 'checked-out' to database-compatible strings
+                // Map UI statuses to database-compatible strings
                 if (isset($validated['status'])) {
                     $statusStr = strtolower($validated['status']);
                     if ($statusStr === 'checked-in') {
                         $statusStr = 'dropped_off';
-                        $validated['payment_status'] = 'paid';
                     }
                     if ($statusStr === 'checked-out') {
                         $statusStr = 'completed';
-                        $validated['payment_status'] = 'paid'; // Assured
-                    }
-                    if ($statusStr === 'pending') {
-                        $validated['payment_status'] = 'pending';
-                    }
-                    if ($statusStr === 'completed') {
-                        $validated['payment_status'] = 'paid';
                     }
                     $validated['status'] = $statusStr;
                 }
