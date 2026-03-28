@@ -60,6 +60,7 @@ interface Bags {
 interface BookingInterface {
     id: string;
     customer: string;
+    email: string;
     contact: string;
     bags: Bags;
     amount: number;
@@ -76,7 +77,15 @@ interface Props {
 
 export default function Bookings({ initialBookings }: Props) {
     const { format } = useCurrency();
-    const [search, setSearch] = useState('');
+    
+    // Initialize filters from URL
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    
+    const [search, setSearch] = useState(searchParams.get('search') || '');
+    const [status, setStatus] = useState(searchParams.get('status') || 'all');
+    const [payment, setPayment] = useState(searchParams.get('payment') || 'all');
+    const [source, setSource] = useState(searchParams.get('source') || 'all');
+    
     const [view, setView] = useState<'list' | 'board'>('list');
 
     // Scanner State
@@ -88,16 +97,38 @@ export default function Bookings({ initialBookings }: Props) {
 
     const [bookings, setBookings] = useState<BookingInterface[]>(initialBookings || []);
 
+    // Load initial parameters if present
     useEffect(() => {
         setBookings(initialBookings || []);
         
-        const searchParams = new URLSearchParams(window.location.search);
-        if (searchParams.get('scan') === 'true') {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('scan') === 'true') {
             setIsScannerOpen(true);
-            window.history.replaceState({}, document.title, window.location.pathname);
+            params.delete('scan');
+            window.history.replaceState({}, document.title, `${window.location.pathname}?${params.toString()}`);
         }
     }, [initialBookings]);
 
+    // Apply filtering
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            const query: Record<string, string> = {};
+            if (search) query.search = search;
+            if (status !== 'all') query.status = status;
+            if (payment !== 'all') query.payment = payment;
+            if (source !== 'all') query.source = source;
+
+            router.get(window.location.pathname, query, {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+            });
+        }, 300);
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [search, status, payment, source]);
+
+    // Polling
     useEffect(() => {
         const interval = setInterval(() => {
             router.reload({ only: ['initialBookings'] });
@@ -177,7 +208,7 @@ export default function Bookings({ initialBookings }: Props) {
                                     />
                                 </div>
                                 <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-                                    <Select defaultValue="all">
+                                    <Select value={status} onValueChange={setStatus}>
                                         <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Status" />
                                         </SelectTrigger>
@@ -189,7 +220,7 @@ export default function Bookings({ initialBookings }: Props) {
                                             <SelectItem value="cancelled">Cancelled</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <Select defaultValue="all">
+                                    <Select value={payment} onValueChange={setPayment}>
                                         <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Payment" />
                                         </SelectTrigger>
@@ -199,7 +230,7 @@ export default function Bookings({ initialBookings }: Props) {
                                             <SelectItem value="paid">Paid</SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <Select defaultValue="all">
+                                    <Select value={source} onValueChange={setSource}>
                                         <SelectTrigger className="w-full md:w-[160px]">
                                             <SelectValue placeholder="Source" />
                                         </SelectTrigger>
@@ -244,6 +275,7 @@ export default function Bookings({ initialBookings }: Props) {
                                         <TableRow>
                                             <TableHead>Booking ID</TableHead>
                                             <TableHead>Customer</TableHead>
+                                            <TableHead>Email</TableHead>
                                             <TableHead>Contact</TableHead>
                                             <TableHead>Bags</TableHead>
                                             <TableHead>Amount</TableHead>
@@ -258,6 +290,7 @@ export default function Bookings({ initialBookings }: Props) {
                                             <TableRow key={booking.id}>
                                                 <TableCell className="font-medium">{booking.id}</TableCell>
                                                 <TableCell>{booking.customer}</TableCell>
+                                                <TableCell>{booking.email}</TableCell>
                                                 <TableCell>{booking.contact}</TableCell>
                                                 <TableCell>
                                                     {Object.entries(booking.bags)
@@ -307,19 +340,6 @@ export default function Bookings({ initialBookings }: Props) {
                                                                 </TooltipTrigger>
                                                                 <TooltipContent>
                                                                     <p>Edit Booking</p>
-                                                                </TooltipContent>
-                                                            </Tooltip>
-                                                        </TooltipProvider>
-
-                                                        <TooltipProvider>
-                                                            <Tooltip>
-                                                                <TooltipTrigger asChild>
-                                                                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
-                                                                        <Trash2 className="h-4 w-4" />
-                                                                    </Button>
-                                                                </TooltipTrigger>
-                                                                <TooltipContent>
-                                                                    <p>Delete Booking</p>
                                                                 </TooltipContent>
                                                             </Tooltip>
                                                         </TooltipProvider>

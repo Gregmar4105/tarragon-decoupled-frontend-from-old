@@ -15,9 +15,34 @@ class BookingController extends Controller
     /**
      * Display a listing of bookings.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $bookings = Booking::with('items')->orderBy('created_at', 'desc')->get();
+        $query = Booking::with('items')->orderBy('created_at', 'desc');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('customer_name', 'like', "%{$search}%")
+                  ->orWhere('customer_email', 'like', "%{$search}%")
+                  ->orWhere('booking_reference', 'like', "%{$search}%")
+                  ->orWhere('customer_phone', 'like', "%{$search}%");
+            });
+        }
+
+        if ($request->filled('status') && $request->input('status') !== 'all') {
+            $status = str_replace(['checked-in', 'checked-out'], ['dropped_off', 'completed'], strtolower($request->input('status')));
+            $query->where('status', $status);
+        }
+
+        if ($request->filled('payment') && $request->input('payment') !== 'all') {
+            $query->where('payment_status', strtolower($request->input('payment')));
+        }
+
+        if ($request->filled('source') && $request->input('source') !== 'all') {
+            $query->where('source', strtolower($request->input('source')));
+        }
+
+        $bookings = $query->get();
 
         $mappedBookings = $bookings->map(function ($booking) {
             $bags = [
@@ -30,7 +55,8 @@ class BookingController extends Controller
             return [
                 'id' => $booking->booking_reference,
                 'customer' => $booking->customer_name,
-                'contact' => $booking->customer_phone ?? $booking->customer_email,
+                'email' => $booking->customer_email,
+                'contact' => $booking->customer_phone ?? '-',
                 'bags' => $bags,
                 'amount' => (float) $booking->total_price,
                 // Status mapping from database to UI expected labels

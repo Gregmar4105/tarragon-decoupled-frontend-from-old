@@ -1,5 +1,5 @@
 import { Head, router } from '@inertiajs/react';
-import { subDays } from 'date-fns';
+import { subDays, format } from 'date-fns';
 import { Download } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { DateRange } from 'react-day-picker';
@@ -36,6 +36,7 @@ interface TransactionData {
     id: string;
     date: string;
     customer: string;
+    email: string;
     source: string;
     bookingId: string;
     amount: number;
@@ -55,11 +56,34 @@ interface Props {
 }
 
 export default function Transactions({ initialTransactions, stats }: Props) {
-    const { format } = useCurrency();
+    const { format: formatCurrency } = useCurrency();
+    
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    
+    // Parse initial dates from URL or default
+    const defaultFrom = searchParams.get('start_date') ? new Date(searchParams.get('start_date')!) : subDays(new Date(), 30);
+    const defaultTo = searchParams.get('end_date') ? new Date(searchParams.get('end_date')!) : new Date();
+
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subDays(new Date(), 30),
-        to: new Date(),
+        from: defaultFrom,
+        to: defaultTo,
     });
+    const [source, setSource] = useState(searchParams.get('source') || 'all');
+    const [method, setMethod] = useState(searchParams.get('method') || 'all');
+
+    useEffect(() => {
+        const query: Record<string, string> = {};
+        if (dateRange?.from) query.start_date = format(dateRange.from, 'yyyy-MM-dd');
+        if (dateRange?.to) query.end_date = format(dateRange.to, 'yyyy-MM-dd');
+        if (source !== 'all') query.source = source;
+        if (method !== 'all') query.method = method;
+
+        router.get(window.location.pathname, query, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    }, [dateRange, source, method]);
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -93,7 +117,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
 
                         <div className="flex flex-col gap-2 w-full md:w-[200px]">
                             <span className="text-sm font-medium">Source</span>
-                            <Select defaultValue="all">
+                            <Select value={source} onValueChange={setSource}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="All" />
                                 </SelectTrigger>
@@ -107,7 +131,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
 
                         <div className="flex flex-col gap-2 w-full md:w-[200px]">
                             <span className="text-sm font-medium">Payment Method</span>
-                            <Select defaultValue="all">
+                            <Select value={method} onValueChange={setMethod}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="All" />
                                 </SelectTrigger>
@@ -118,7 +142,13 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                             </Select>
                         </div>
 
-                        <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm">
+                        <Button 
+                            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm"
+                            onClick={() => {
+                                const query = new URLSearchParams(window.location.search);
+                                window.location.href = `/transactions/export?${query.toString()}`;
+                            }}
+                        >
                             <Download className="h-4 w-4" />
                             Export to CSV
                         </Button>
@@ -130,7 +160,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                     <Card>
                         <CardContent className="p-4">
                             <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
-                            <div className="text-2xl font-bold mt-1">{format(totalRevenue)}</div>
+                            <div className="text-2xl font-bold mt-1">{formatCurrency(totalRevenue)}</div>
                             <span className="text-xs text-green-600">↑ Up to date</span>
                         </CardContent>
                     </Card>
@@ -144,7 +174,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                     <Card>
                         <CardContent className="p-4">
                             <span className="text-sm font-medium text-muted-foreground">Average Transaction</span>
-                            <div className="text-2xl font-bold mt-1">{format(averageTransaction)}</div>
+                            <div className="text-2xl font-bold mt-1">{formatCurrency(averageTransaction)}</div>
                             <span className="text-xs text-muted-foreground">Per booking</span>
                         </CardContent>
                     </Card>
@@ -159,6 +189,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                                     <TableHead>Transaction ID</TableHead>
                                     <TableHead>Date & Time</TableHead>
                                     <TableHead>Customer</TableHead>
+                                    <TableHead>Email</TableHead>
                                     <TableHead>Source</TableHead>
                                     <TableHead>Booking ID</TableHead>
                                     <TableHead>Amount</TableHead>
@@ -172,9 +203,10 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                                         <TableCell className="font-medium">{txn.id}</TableCell>
                                         <TableCell>{txn.date}</TableCell>
                                         <TableCell>{txn.customer}</TableCell>
+                                        <TableCell>{txn.email}</TableCell>
                                         <TableCell>{txn.source}</TableCell>
                                         <TableCell>{txn.bookingId}</TableCell>
-                                        <TableCell className="font-bold">{format(txn.amount)}</TableCell>
+                                        <TableCell className="font-bold">{formatCurrency(txn.amount)}</TableCell>
                                         <TableCell>{txn.method}</TableCell>
                                         <TableCell><StatusBadge status={txn.status} /></TableCell>
                                     </TableRow>

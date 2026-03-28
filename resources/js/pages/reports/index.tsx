@@ -1,7 +1,7 @@
-import { Head } from '@inertiajs/react';
+import { Head, router } from '@inertiajs/react';
 import { format, subDays } from 'date-fns';
 import { Download } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { DateRange } from 'react-day-picker';
 import { DailyBookingsChart } from '@/components/DailyBookingsChart';
 import { DateRangePicker } from '@/components/DateRangePicker';
@@ -16,10 +16,27 @@ interface Props {
 }
 
 export default function Reports({ dailyTrend, sourceDistribution }: Props) {
+    const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    
+    const defaultFrom = searchParams.get('start_date') ? new Date(searchParams.get('start_date')!) : subDays(new Date(), 6);
+    const defaultTo = searchParams.get('end_date') ? new Date(searchParams.get('end_date')!) : new Date();
+
     const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: subDays(new Date(), 30),
-        to: new Date(),
+        from: defaultFrom,
+        to: defaultTo,
     });
+
+    useEffect(() => {
+        const query: Record<string, string> = {};
+        if (dateRange?.from) query.start_date = format(dateRange.from, 'yyyy-MM-dd');
+        if (dateRange?.to) query.end_date = format(dateRange.to, 'yyyy-MM-dd');
+
+        router.get(window.location.pathname, query, {
+            preserveState: true,
+            preserveScroll: true,
+            replace: true,
+        });
+    }, [dateRange]);
 
     const getDateRangeDescription = () => {
         if (!dateRange?.from) return 'Select a date range';
@@ -44,7 +61,13 @@ export default function Reports({ dailyTrend, sourceDistribution }: Props) {
                             dateRange={dateRange}
                             onDateRangeChange={setDateRange}
                         />
-                        <Button className="w-full sm:w-auto gap-2 bg-orange-500 hover:bg-orange-600 shadow-sm text-white">
+                        <Button 
+                            className="w-full sm:w-auto gap-2 bg-orange-500 hover:bg-orange-600 shadow-sm text-white"
+                            onClick={() => {
+                                const query = new URLSearchParams(window.location.search);
+                                window.location.href = `/reports/export?${query.toString()}`;
+                            }}
+                        >
                             <Download className="w-4 h-4" /> Export Report
                         </Button>
                     </div>
