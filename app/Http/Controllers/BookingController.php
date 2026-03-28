@@ -146,7 +146,6 @@ class BookingController extends Controller
 
                 $booking = Booking::create([
                     'plan_id' => $planId,
-                    'branch_id' => $branchId,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => $validated['customer_email'],
                     'customer_phone' => $validated['customer_phone'] ?? null,
