@@ -144,7 +144,7 @@ class BookingController extends Controller
                     $planId = $plan->id;
                 }
 
-                $booking = Booking::create([
+                $bookingData = [
                     'plan_id' => $planId,
                     'customer_name' => $validated['customer_name'],
                     'customer_email' => $validated['customer_email'],
@@ -156,7 +156,26 @@ class BookingController extends Controller
                     'payment_status' => 'pending',
                     'source' => $request->input('source') === 'admin' ? 'walk-in' : 'online',
                     'booking_reference' => 'BK' . strtoupper(uniqid()),
-                ]);
+                ];
+
+                if (\Illuminate\Support\Facades\Schema::hasColumn('bookings', 'branch_id')) {
+                    $bookingData['branch_id'] = 1;
+                    if (\Illuminate\Support\Facades\Schema::hasTable('branches') && !\Illuminate\Support\Facades\DB::table('branches')->where('id', 1)->exists()) {
+                        \Illuminate\Support\Facades\DB::table('branches')->insert([
+                            'id' => 1,
+                            'name' => 'Main',
+                            'slug' => 'main',
+                            'address' => 'Tarragon',
+                            'city' => 'Manila',
+                            'zip' => '1000',
+                            'country' => 'PH'
+                        ]);
+                    }
+                }
+
+                $booking = new Booking();
+                $booking->forceFill($bookingData);
+                $booking->save();
 
                 // Create items based on the provided counts map
                 $itemsToCreate = [];

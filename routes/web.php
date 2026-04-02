@@ -8,9 +8,15 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
 
+
+
 Route::get('/', function () {
-    return redirect()->route('login');
-})->name('home');
+    return Inertia::render('welcome');
+})->name('welcome');
+
+Route::get('login', function () {
+    return Inertia::render('auth/login');
+})->name('login');
 
 Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
 
