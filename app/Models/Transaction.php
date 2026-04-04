@@ -3,9 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class Transaction extends Model
 {
+    use Auditable;
+
     protected $fillable = [
         'booking_id',
         'amount',

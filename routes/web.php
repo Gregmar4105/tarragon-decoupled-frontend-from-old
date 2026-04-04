@@ -9,7 +9,6 @@ use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
 
 
-
 Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('welcome');

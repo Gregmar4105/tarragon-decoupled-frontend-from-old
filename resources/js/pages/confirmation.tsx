@@ -80,9 +80,7 @@ export default function Confirmation({ bookingId }: { bookingId?: string }) {
                                         <Button variant="outline" className="flex-1 gap-2">
                                             <Printer className="w-4 h-4" /> Print
                                         </Button>
-                                        <Button variant="outline" className="flex-1 gap-2">
-                                            <Share2 className="w-4 h-4" /> Share
-                                        </Button>
+                    
                                     </div>
                                 </div>
 

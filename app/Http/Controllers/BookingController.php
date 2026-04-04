@@ -30,8 +30,7 @@ class BookingController extends Controller
         }
 
         if ($request->filled('status') && $request->input('status') !== 'all') {
-            $status = str_replace(['checked-in', 'checked-out'], ['dropped_off', 'completed'], strtolower($request->input('status')));
-            $query->where('status', $status);
+            $query->where('status', strtolower($request->input('status')));
         }
 
         if ($request->filled('payment') && $request->input('payment') !== 'all') {
@@ -60,7 +59,7 @@ class BookingController extends Controller
                 'bags' => $bags,
                 'amount' => (float) $booking->total_price,
                 // Status mapping from database to UI expected labels
-                'status' => ucfirst(str_replace(['dropped_off', 'completed', '_'], ['checked-in', 'checked-out', '-'], $booking->status)), 
+                'status' => ucfirst($booking->status), 
                 'payment_status' => ucfirst($booking->payment_status ?? 'pending'),
                 'source' => ucfirst($booking->source),
                 'checkIn' => Carbon::parse($booking->drop_off_time)->format('Y-m-d h:i A'),
@@ -98,7 +97,7 @@ class BookingController extends Controller
             'contact' => $booking->customer_phone ?? $booking->customer_email,
             'bags' => $bags,
             'amount' => (float) $booking->total_price,
-            'status' => ucfirst(str_replace(['dropped_off', 'completed', '_'], ['checked-in', 'checked-out', '-'], $booking->status)),
+            'status' => ucfirst($booking->status),
             'payment_status' => ucfirst($booking->payment_status ?? 'pending'),
             'payment_method' => ucfirst($paymentMethod),
             'source' => ucfirst($booking->source),
@@ -152,7 +151,7 @@ class BookingController extends Controller
                     'drop_off_time' => Carbon::parse($validated['drop_off_time'])->format('Y-m-d H:i:s'),
                     'pick_up_time' => Carbon::parse($validated['pick_up_time'])->format('Y-m-d H:i:s'),
                     'total_price' => $validated['total_price'],
-                    'status' => $request->input('source') === 'admin' ? 'dropped_off' : 'pending',
+                    'status' => $request->input('source') === 'admin' ? 'checked-in' : 'pending',
                     'payment_status' => 'pending',
                     'source' => $request->input('source') === 'admin' ? 'walk-in' : 'online',
                     'booking_reference' => 'BK' . strtoupper(uniqid()),
@@ -237,7 +236,7 @@ class BookingController extends Controller
             'customer_phone' => 'nullable|string|max:255',
             'drop_off_time' => 'sometimes|required|date',
             'pick_up_time' => 'sometimes|required|date',
-            'status' => 'sometimes|required|in:pending,confirmed,checked-in,checked-out,completed,cancelled',
+            'status' => 'sometimes|required|in:pending,confirmed,checked-in,checked-out,cancelled',
             'payment_status' => 'sometimes|required|in:pending,paid,refunded',
             'total_price' => 'sometimes|required|numeric|min:0',
             
@@ -268,14 +267,7 @@ class BookingController extends Controller
 
                 // Map UI statuses to database-compatible strings
                 if (isset($validated['status'])) {
-                    $statusStr = strtolower($validated['status']);
-                    if ($statusStr === 'checked-in') {
-                        $statusStr = 'dropped_off';
-                    }
-                    if ($statusStr === 'checked-out') {
-                        $statusStr = 'completed';
-                    }
-                    $validated['status'] = $statusStr;
+                    $validated['status'] = strtolower($validated['status']);
                 }
 
                 // Update basic booking details except items/bags

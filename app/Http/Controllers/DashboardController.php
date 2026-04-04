@@ -20,7 +20,7 @@ class DashboardController extends Controller
             return [
                 'id' => $booking->booking_reference,
                 'customer' => $booking->customer_name,
-                'status' => ucfirst(str_replace(['dropped_off', 'completed', '_'], ['checked-in', 'checked-out', ' '], $booking->status)),
+                'status' => ucfirst($booking->status),
                 'payment' => $transaction ? ucfirst($transaction->payment_method) : 'N/A',
                 'transactionId' => $transaction ? $transaction->transaction_reference : 'N/A',
             ];
@@ -38,12 +38,12 @@ class DashboardController extends Controller
         // Active Bags (Currently dropped off)
         $capacity = 150;
         $activeBagsToday = \App\Models\BookingItem::whereHas('booking', function ($query) {
-            $query->whereIn('status', ['dropped_off']);
+            $query->whereIn('status', ['checked-in']);
         })->sum('quantity');
 
         // Estimate active bags yesterday for trend
         $activeBagsYesterday = \App\Models\BookingItem::whereHas('booking', function ($query) {
-            $query->whereIn('status', ['dropped_off', 'completed'])
+            $query->whereIn('status', ['checked-in', 'checked-out'])
                   ->whereDate('drop_off_time', '<=', Carbon::yesterday())
                   ->where(function ($q) {
                       $q->whereNull('pick_up_time')
@@ -70,9 +70,9 @@ class DashboardController extends Controller
         $avgRevenuePerBag = $totalBagsToday > 0 ? ($revenueToday / $totalBagsToday) : 0;
 
         // Check-ins (Bookings currently checked in)
-        $checkinsToday = Booking::where('status', 'dropped_off')->count();
+        $checkinsToday = Booking::where('status', 'checked-in')->count();
         
-        $checkinsYesterday = Booking::whereIn('status', ['dropped_off', 'completed'])
+        $checkinsYesterday = Booking::whereIn('status', ['checked-in', 'checked-out'])
             ->whereDate('drop_off_time', '<=', Carbon::yesterday())
             ->where(function ($q) {
                 $q->whereNull('pick_up_time')
