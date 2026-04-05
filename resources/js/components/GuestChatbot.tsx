@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +26,15 @@ export default function GuestChatbot() {
         },
     ]);
     const [inputValue, setInputValue] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const [sessionId] = useState(() => {
+        let sid = sessionStorage.getItem('chat_session_id');
+        if (!sid) {
+            sid = 'sess_' + Math.random().toString(36).substring(2, 15);
+            sessionStorage.setItem('chat_session_id', sid);
+        }
+        return sid;
+    });
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
@@ -36,8 +45,8 @@ export default function GuestChatbot() {
         scrollToBottom();
     }, [messages, isOpen]);
 
-    const handleSend = (text: string = inputValue) => {
-        if (!text.trim()) return;
+    const handleSend = async (text: string = inputValue) => {
+        if (!text.trim() || isLoading) return;
 
         const newUserMsg: Message = {
             id: Date.now().toString(),
@@ -47,21 +56,33 @@ export default function GuestChatbot() {
 
         setMessages((prev) => [...prev, newUserMsg]);
         setInputValue('');
+        setIsLoading(true);
 
-        // Simple bot response logic
-        setTimeout(() => {
-            let botReply = "Thanks for your message! Our team will get back to you soon. Please check our FAQ on the Pricing page for immediate answers.";
-            
-            const lowerText = text.toLowerCase();
-            if (lowerText.includes('rate') || lowerText.includes('price') || lowerText.includes('cost')) {
-                botReply = "Our rates start at $2.00/hour or $5.00/day per bag. You can find full details on our Pricing page!";
-            } else if (lowerText.includes('locate') || lowerText.includes('where')) {
-                botReply = "We are located at Tarragon Corner, just minutes away from NAIA Terminal 3 in Pasay City. You can easily walk from the Runway Manila footbridge!";
-            } else if (lowerText.includes('book') || lowerText.includes('reserve')) {
-                botReply = "You can book directly by clicking the 'Book Storage Now' button on our pages. It takes less than 2 minutes and guarantees your spot!";
-            } else if (lowerText.includes('hi') || lowerText.includes('hello')) {
-                botReply = "Hello! Let me know if you have any questions about storing your luggage with us.";
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: text,
+                    session_id: sessionId
+                })
+            });
+            let data;
+            try {
+                data = await response.json();
+            } catch (e) {
+                throw new Error('Failed to parse server response');
             }
+
+            if (!response.ok) {
+                const errorReply = data?.reply || data?.message || 'Network response was not ok';
+                throw new Error(errorReply);
+            }
+
+            const botReply = data?.reply || 'I received your message!';
 
             setMessages((prev) => [
                 ...prev,
@@ -71,7 +92,19 @@ export default function GuestChatbot() {
                     sender: 'bot',
                 }
             ]);
-        }, 600);
+        } catch (error: any) {
+            console.error('Chat error:', error);
+            setMessages((prev) => [
+                ...prev,
+                {
+                    id: (Date.now() + 1).toString(),
+                    text: error.message || "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+                    sender: 'bot',
+                }
+            ]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -132,6 +165,20 @@ export default function GuestChatbot() {
                                     </div>
                                 </div>
                             ))}
+                            {isLoading && (
+                                <div className="flex max-w-[85%] self-start">
+                                    <div className="flex gap-2 items-end">
+                                        <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mb-1">
+                                            <Bot className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="p-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-none flex gap-1">
+                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-100"></span>
+                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-200"></span>
+                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-300"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {messages.length === 1 && (
                                 <div className="flex flex-col gap-2 mt-2">
                                     <p className="text-xs text-gray-500 font-medium px-2">Suggested questions:</p>
@@ -139,8 +186,9 @@ export default function GuestChatbot() {
                                         {SUGGESTED_QUESTIONS.map((q, i) => (
                                             <button
                                                 key={i}
+                                                disabled={isLoading}
                                                 onClick={() => handleSend(q)}
-                                                className="text-left text-xs bg-white border border-orange-100 text-orange-600 hover:bg-orange-50 px-3 py-2 rounded-xl transition-colors shadow-sm"
+                                                className="text-left text-xs bg-white border border-orange-100 text-orange-600 hover:bg-orange-50 disabled:opacity-50 px-3 py-2 rounded-xl transition-colors shadow-sm"
                                             >
                                                 {q}
                                             </button>
@@ -169,10 +217,10 @@ export default function GuestChatbot() {
                                 <Button 
                                     type="submit" 
                                     size="icon"
-                                    disabled={!inputValue.trim()}
+                                    disabled={!inputValue.trim() || isLoading}
                                     className="rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm shrink-0"
                                 >
-                                    <Send className="w-4 h-4" />
+                                    {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                 </Button>
                             </form>
                         </div>
