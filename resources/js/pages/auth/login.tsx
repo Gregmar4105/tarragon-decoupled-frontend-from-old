@@ -129,14 +129,12 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                                 Sign In
                             </Button>
 
-                            {canRegister && (
-                                <div className="mt-4 text-center text-sm text-gray-500">
-                                    Don't have an account?{' '}
-                                    <Link href={register()} className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
-                                        Sign up
-                                    </Link>
-                                </div>
-                            )}
+                            <div className="mt-4 text-center text-sm text-gray-500">
+                                Don't have an account?{' '}
+                                <Link href={register()} className="font-semibold text-orange-600 hover:text-orange-500 transition-colors">
+                                    Sign up
+                                </Link>
+                            </div>
                         </>
                     )}
                 </Form>
