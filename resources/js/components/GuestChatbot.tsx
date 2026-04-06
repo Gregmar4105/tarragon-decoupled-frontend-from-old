@@ -27,6 +27,8 @@ export default function GuestChatbot() {
     ]);
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [loadingSeconds, setLoadingSeconds] = useState(0);
+    const loadingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const [sessionId] = useState(() => {
         let sid = sessionStorage.getItem('chat_session_id');
         if (!sid) {
@@ -57,6 +59,14 @@ export default function GuestChatbot() {
         setMessages((prev) => [...prev, newUserMsg]);
         setInputValue('');
         setIsLoading(true);
+        setLoadingSeconds(0);
+        loadingIntervalRef.current = setInterval(() => {
+            setLoadingSeconds((s) => s + 1);
+        }, 1000);
+
+        // Allow up to 120 seconds for the AI agent (n8n booking flows can take 60-90s).
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
 
         try {
             const response = await fetch('/api/chat', {
@@ -68,8 +78,11 @@ export default function GuestChatbot() {
                 body: JSON.stringify({
                     message: text,
                     session_id: sessionId
-                })
+                }),
+                signal: controller.signal,
             });
+            clearTimeout(timeoutId);
+
             let data;
             try {
                 data = await response.json();
@@ -93,17 +106,26 @@ export default function GuestChatbot() {
                 }
             ]);
         } catch (error: any) {
+            clearTimeout(timeoutId);
             console.error('Chat error:', error);
+            const isAborted = error.name === 'AbortError';
             setMessages((prev) => [
                 ...prev,
                 {
                     id: (Date.now() + 1).toString(),
-                    text: error.message || "I'm sorry, I'm having trouble connecting right now. Please try again later.",
+                    text: isAborted
+                        ? "⏱️ The AI took too long to respond. This can happen with complex booking requests. Please try again."
+                        : (error.message || "I'm sorry, I'm having trouble connecting right now. Please try again later."),
                     sender: 'bot',
                 }
             ]);
         } finally {
             setIsLoading(false);
+            setLoadingSeconds(0);
+            if (loadingIntervalRef.current) {
+                clearInterval(loadingIntervalRef.current);
+                loadingIntervalRef.current = null;
+            }
         }
     };
 
@@ -171,10 +193,19 @@ export default function GuestChatbot() {
                                         <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center shrink-0 mb-1">
                                             <Bot className="w-3.5 h-3.5" />
                                         </div>
-                                        <div className="p-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-none flex gap-1">
-                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-100"></span>
-                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-200"></span>
-                                            <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-300"></span>
+                                        <div className="p-3 rounded-2xl text-sm bg-white border border-gray-100 shadow-sm text-gray-800 rounded-bl-none flex flex-col gap-1.5">
+                                            <div className="flex gap-1">
+                                                <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-100"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-200"></span>
+                                                <span className="w-2 h-2 rounded-full bg-gray-300 animate-bounce delay-300"></span>
+                                            </div>
+                                            {loadingSeconds >= 8 && (
+                                                <p className="text-xs text-gray-400">
+                                                    {loadingSeconds >= 30
+                                                        ? `⏳ Still processing… (${loadingSeconds}s)`
+                                                        : 'AI agent is thinking…'}
+                                                </p>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

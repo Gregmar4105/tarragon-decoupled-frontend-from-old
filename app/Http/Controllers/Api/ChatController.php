@@ -12,6 +12,10 @@ class ChatController extends Controller
 {
     public function sendMessage(Request $request)
     {
+        // Remove PHP's default 30-second execution time limit.
+        // n8n AI agents (especially for booking flows) can take 60-120 seconds.
+        set_time_limit(0);
+
         $request->validate([
             'message' => 'required|string',
             'session_id' => 'required|string',
@@ -54,8 +58,9 @@ class ChatController extends Controller
                     return "Customer: " . $msg->sent_messages . "\nAssistant: " . $msg->ai_response;
                 })->implode("\n\n");
 
-            // Forward the message to n8n Webhook
-            $response = Http::post($webhookUrl, [
+            // Forward the message to n8n Webhook.
+            // Timeout set to 120 seconds — AI booking agents can take 60-90s.
+            $response = Http::timeout(120)->post($webhookUrl, [
                 'session_id' => $sessionId,
                 'message' => $message,
                 'system_context' => [
