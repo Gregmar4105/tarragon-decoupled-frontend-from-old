@@ -147,6 +147,14 @@ export default function Bookings({ initialBookings }: Props) {
         );
     };
 
+    // Called when a card is dragged to a new Kanban column.
+    // Opens the Edit modal pre-filled with the new status so the admin
+    // can update payment or other fields before the change is saved.
+    const handleKanbanStatusChange = (booking: BookingInterface, newStatus: string) => {
+        setSelectedBooking({ ...booking, status: newStatus.toLowerCase() });
+        setIsEditModalOpen(true);
+    };
+
     const activeCount = bookings.filter(b => b.status.toLowerCase() === 'checked-in').length;
 
     return (
@@ -353,9 +361,13 @@ export default function Bookings({ initialBookings }: Props) {
                         </Card>
                     </>
                 ) : (
-                    <BookingKanban bookings={bookings} onStatusChange={(id, status) => {
-                        setBookings(current => current.map(b => b.id === id ? { ...b, status } : b));
-                    }} />
+                    <BookingKanban
+                        bookings={bookings}
+                        onStatusChange={(id, status) => {
+                            setBookings(current => current.map(b => b.id === id ? { ...b, status } : b));
+                        }}
+                        onKanbanStatusChange={handleKanbanStatusChange}
+                    />
                 )}
 
                 <BookingScanner
@@ -367,7 +379,11 @@ export default function Bookings({ initialBookings }: Props) {
 
                 <EditBookingModal
                     isOpen={isEditModalOpen}
-                    onClose={() => setIsEditModalOpen(false)}
+                    onClose={() => {
+                        setIsEditModalOpen(false);
+                        // Revert optimistic Kanban updates if modal is closed without saving
+                        setBookings(initialBookings || []);
+                    }}
                     booking={selectedBooking}
                 />
             </div>

@@ -4,60 +4,30 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\Booking;
-use App\Models\BookingItem;
+use App\Services\ReportService;
 use Carbon\Carbon;
-use Carbon\CarbonPeriod;
 
 class ReportController extends Controller
 {
-    private function getReportData(Request $request)
+    private ReportService $service;
+
+    public function __construct(ReportService $service)
+    {
+        $this->service = $service;
+    }
+
+    private function getRequestedDates(Request $request): array
     {
         $endDate = $request->filled('end_date') ? Carbon::parse($request->input('end_date')) : Carbon::now();
         $startDate = $request->filled('start_date') ? Carbon::parse($request->input('start_date')) : Carbon::now()->subDays(6);
-        $period = CarbonPeriod::create($startDate, $endDate);
         
-        $dailyBookings = [];
-        foreach ($period as $date) {
-            $formattedDate = $date->format('Y-m-d');
-            $shortName = $date->format('D, M d'); 
-            $dailyBookings[$formattedDate] = [
-                'name' => $shortName,
-                'bookings' => 0,
-            ];
-        }
-
-        // Query bookings within the date range and sum their item quantities
-        $bookings = Booking::with('items')
-            ->whereBetween('created_at', [$startDate->copy()->startOfDay(), $endDate->copy()->endOfDay()])
-            ->get();
-
-        foreach ($bookings as $booking) {
-            $dateKey = $booking->created_at->format('Y-m-d');
-            if (isset($dailyBookings[$dateKey])) {
-                $dailyBookings[$dateKey]['bookings'] += $booking->items->sum('quantity');
-            }
-        }
-
-        $onlineCount = Booking::whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
-            ->where('source', 'online')->count();
-        $walkinCount = Booking::whereBetween('created_at', [$startDate->startOfDay(), $endDate->endOfDay()])
-            ->where('source', 'walk-in')->count();
-
-        $sourceData = [
-            ['name' => 'Online Booking', 'value' => $onlineCount],
-            ['name' => 'Walk-ins', 'value' => $walkinCount],
-        ];
-
-        return [
-            'dailyTrend' => array_values($dailyBookings),
-            'sourceDistribution' => $sourceData
-        ];
+        return [$startDate, $endDate];
     }
 
     public function index(Request $request)
     {
-        $data = $this->getReportData($request);
+        [$startDate, $endDate] = $this->getRequestedDates($request);
+        $data = $this->service->compileReportData($startDate, $endDate);
 
         return Inertia::render('reports/index', [
             'dailyTrend' => $data['dailyTrend'],
@@ -68,31 +38,9 @@ class ReportController extends Controller
 
     public function export(Request $request)
     {
-        $data = $this->getReportData($request);
+        [$startDate, $endDate] = $this->getRequestedDates($request);
+        $data = $this->service->compileReportData($startDate, $endDate);
         
-        $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function () use ($data) {
-            $handle = fopen('php://output', 'w');
-            
-            fputcsv($handle, ['Daily Bookings Trend']);
-            fputcsv($handle, ['Date', 'Bags Stored']);
-            foreach ($data['dailyTrend'] as $trend) {
-                fputcsv($handle, [$trend['name'], $trend['bookings']]);
-            }
-            
-            fputcsv($handle, []);
-            
-            fputcsv($handle, ['Booking Sources']);
-            fputcsv($handle, ['Source', 'Count']);
-            foreach ($data['sourceDistribution'] as $source) {
-                fputcsv($handle, [$source['name'], $source['value']]);
-            }
-
-            fclose($handle);
-        });
-
-        $response->headers->set('Content-Type', 'text/csv');
-        $response->headers->set('Content-Disposition', 'attachment; filename="reports_export.csv"');
-
-        return $response;
+        return $this->service->exportCsv($data);
     }
 }

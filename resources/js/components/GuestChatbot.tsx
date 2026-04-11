@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
+import { MessageCircle, X, Send, Bot, Loader2 } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 type Message = {
     id: string;
@@ -38,6 +37,14 @@ export default function GuestChatbot() {
         return sid;
     });
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const autoResize = () => {
+        const el = textareaRef.current;
+        if (!el) return;
+        el.style.height = 'auto';
+        el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+    };
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -237,19 +244,35 @@ export default function GuestChatbot() {
                                     e.preventDefault();
                                     handleSend();
                                 }}
-                                className="flex gap-2"
+                                className="flex items-end gap-2 min-w-0"
                             >
-                                <Input
+                                <textarea
+                                    ref={textareaRef}
+                                    rows={1}
                                     value={inputValue}
-                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onChange={(e) => {
+                                        setInputValue(e.target.value);
+                                        autoResize();
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault();
+                                            handleSend();
+                                            if (textareaRef.current) {
+                                                textareaRef.current.style.height = 'auto';
+                                            }
+                                        }
+                                    }}
                                     placeholder="Type your message..."
-                                    className="border-gray-200 rounded-full bg-gray-50 focus-visible:ring-orange-500"
+                                    disabled={isLoading}
+                                    className="flex-1 min-w-0 resize-none overflow-y-auto rounded-2xl bg-gray-50 border border-gray-200 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 outline-none focus:outline-none focus:ring-0 focus:border-gray-200 leading-relaxed"
+                                    style={{ maxHeight: '120px' }}
                                 />
                                 <Button 
                                     type="submit" 
                                     size="icon"
                                     disabled={!inputValue.trim() || isLoading}
-                                    className="rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm shrink-0"
+                                    className="rounded-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm shrink-0 self-end"
                                 >
                                     {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                 </Button>

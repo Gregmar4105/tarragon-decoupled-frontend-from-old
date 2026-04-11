@@ -1,0 +1,113 @@
+Tarragon Manila - Refactored 3-Tier Architecture Documentation
+
+====================================================================
+OVERVIEW
+====================================================================
+This document outlines the architectural patterns adopted during the refactoring of the Tarragon Manila backend. The codebase has been transitioned from a monolithic Controller-heavy approach to a clean, scalable 3-Tier Architecture combined with API Resources.
+
+The primary goals of this architecture are:
+1. Separation of Concerns (SoC)
+2. Improved testability and maintainability
+3. Reusability of business logic and complex queries
+4. Clear contract definitions between backend models and frontend views
+
+The four main pillars of this architecture are:
+- Controllers (Presentation Layer)
+- Services (Business Logic Layer)
+- Repositories (Data Access Layer)
+- Resources (Data Transformation Layer)
+
+====================================================================
+1. CONTROLLERS (Presentation Layer)
+Location: app/Http/Controllers/
+====================================================================
+Purpose: 
+Controllers act as the entry points for HTTP requests. They are responsible strictly for receiving requests, delegating instructions to the lower layers, and returning HTTP responses (Inertia views or JSON/Downloads).
+
+Rules:
+- MUST be extremely "thin".
+- NO business logic (calculations, complex conditions, email sending, external API calls).
+- NO database queries (e.g., Bookings::where(...)->get() or Plan::all()).
+- SHOULD only handle:
+    - Route parameter extraction and basic Request validation.
+    - Calling methods on Services and/or Repositories.
+    - Formatting the response (usually wrapping results in Resources and handing off to Inertia::render).
+
+Examples Created/Refactored:
+- BookingController
+- TransactionController
+- DashboardController
+- PlanController
+- ReportController
+
+====================================================================
+2. SERVICES (Business Logic Layer)
+Location: app/Services/
+====================================================================
+Purpose:
+Services contain the "meat" of the application logic. If an action requires making calculations, formatting data arrays for charts, executing a multi-step database transaction (e.g., creating a booking, saving items, generating a transaction record, and firing a notification), it belongs here.
+
+Rules:
+- DO NOT access the Request object directly. Data should be passed from the Controller into the Service as arrays or DTOs.
+- DO NOT contain direct database queries (unless trivial). Complex queries are delegated to Repositories. Services coordinate the Repositories.
+- Used for calculations, generating CSV streams, and compiling complex data structures.
+
+Examples Created:
+- BookingService: Handles booking creation, status updates with logic checks, item synchronization, and transaction commits.
+- DashboardService: Calculates active bags, compares previous day trends, and structures the Recharts arrays.
+- ReportService: Formats CSV exports and groups date iterations.
+- TransactionService: Generates statistics and CSV exports for transactions.
+- PlanService: Encapsulates creation/updating of plans.
+
+====================================================================
+3. REPOSITORIES (Data Access Layer)
+Location: app/Repositories/
+====================================================================
+Purpose:
+Repositories encapsulate all database interactions. Whenever data needs to be retrieved, saved, updated, or deleted using Eloquent or the Query Builder, the Repository handles it. Abstracting queries here means that if the database structure changes, only the repository needs updating.
+
+Rules:
+- MUST contain all complex Eloquent scopes, joins, where clauses, and eager loading (with()).
+- SHOULD return Eloquent Models, Collections, or LengthAwarePaginators.
+- DO NOT format the data for the frontend (that is the Resource's job).
+- Used extensively for standardizing filtered queries ensuring identical data can be fetched from API routes or web routes without duplicating query logic.
+
+Examples Created:
+- BookingRepository: Handles filtering by search terms, statuses, dates, and eager loading items/transactions.
+- DashboardRepository: Houses raw sum(), count(), and whereDate() methods for specific metric abstractions.
+- ReportRepository: Extracts specific date-range sub-queries.
+- TransactionRepository: Handles transaction filtering based on source and methodology.
+- PlanRepository: Handles paginated fetch of templates.
+
+====================================================================
+4. RESOURCES (Data Transformation Layer)
+Location: app/Http/Resources/
+====================================================================
+Purpose:
+API/Json Resources are responsible for transforming raw database records (Eloquent Models) into the exact JSON shapes expected by the Inertia frontend. This decouples the database schema from the frontend components.
+
+Rules:
+- Prevent over-fetching (do not send the entire Model with sensitive data like passwords or internal hidden flags unless necessary).
+- Map confusing database columns to clean frontend variables (e.g., transforming `transaction_reference` into simply `id`).
+- Ensure numerical fields are cast to appropriate types (`(float)`, `(int)`) so frontend typescript interfaces do not silently break.
+- Parse dates safely using Carbon before handing them to Javascript.
+
+Examples Created:
+- BookingResource: Formats dates, maps items array, extracts customer details securely.
+- TransactionResource: Flattens relationships so `txn->booking->customer_name` becomes just `customer`.
+- DashboardRecentBookingResource & DashboardRecentSaleResource: Specifically trims the payload for the minimal component requirements on the dashboard.
+- PlanResource: Casts pricing decimals precisely.
+
+====================================================================
+WORKFLOW EXAMPLE
+====================================================================
+Action: User views the Dashboard.
+
+1. Route triggers `DashboardController@index`.
+2. `DashboardController` calls `$this->service->getStats()`.
+3. `DashboardService` needs data, so it calls `$this->repository->getActiveBagsToday()`.
+4. `DashboardRepository` runs `BookingItem::whereHas(...)->sum('quantity')` and returns an integer to the Service.
+5. The Service processes that integer along with others, calculates a 'trend' percentage, and returns a structured PHP array to the Controller.
+6. The Controller calls `$this->service->getRecentBookings()`.
+7. The Controller wraps those bookings in `DashboardRecentBookingResource::collection()->resolve()` to format them cleanly.
+8. The Controller returns everything to `Inertia::render()`.

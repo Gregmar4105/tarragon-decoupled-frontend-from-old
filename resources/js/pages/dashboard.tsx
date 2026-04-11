@@ -61,17 +61,44 @@ interface DashboardProps {
     recentSales: RecentSale[];
     stats: DashboardStats;
     pricing?: { small: number; medium: number; large: number; plus: number };
+    chartData: { name: string; total: number }[];
+    salesThisMonth: number;
 }
 
-export default function Dashboard({ recentBookings = [], recentSales = [], stats }: DashboardProps) {
+export default function Dashboard({ recentBookings = [], recentSales = [], stats, chartData, salesThisMonth }: DashboardProps) {
     const { format } = useCurrency();
     const [isLoading, setIsLoading] = useState(true);
+
+    const exportToCsv = () => {
+        const headers = ['Booking ID', 'Customer', 'Status', 'Payment Method', 'Transaction ID'];
+        const rows = recentBookings.map((b) => [
+            b.id,
+            b.customer,
+            b.status,
+            b.payment,
+            b.transactionId,
+        ]);
+
+        const csvContent = [headers, ...rows]
+            .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+            .join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `recent-bookings-${new Date().toISOString().slice(0, 10)}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    };
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000); // Mock loading delay
 
         const interval = setInterval(() => {
-            router.reload({ only: ['stats', 'recentBookings', 'recentSales'] });
+            router.reload({ only: ['stats', 'recentBookings', 'recentSales', 'chartData', 'salesThisMonth'] });
         }, 15000); // Poll every 15 seconds
 
         return () => {
@@ -121,12 +148,6 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
                         <p className="text-muted-foreground">Manage your luggage storage operations.</p>
                     </div>
-                    <BookingModal source="admin">
-                        <button className="inline-flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition-colors">
-                            <Plus className="h-4 w-4" />
-                            New Booking
-                        </button>
-                    </BookingModal>
                 </div>
 
                 {/* Stats Grid */}
@@ -151,7 +172,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                             {isLoading ? (
                                 <Skeleton className="h-[350px] w-full" />
                             ) : (
-                                <RevenueChart />
+                                <RevenueChart data={chartData} />
                             )}
                         </CardContent>
                     </Card>
@@ -159,7 +180,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                         <CardHeader>
                             <CardTitle>Recent Sales</CardTitle>
                             <CardDescription>
-                                You made 265 sales this month.
+                                You made {salesThisMonth} sales this month.
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -185,7 +206,7 @@ export default function Dashboard({ recentBookings = [], recentSales = [], stats
                             <CardTitle>Recent Bookings</CardTitle>
                             <CardDescription>Latest transactions and storage activities.</CardDescription>
                         </div>
-                        <Button variant="outline" size="sm" className="gap-2">
+                        <Button variant="outline" size="sm" className="gap-2" onClick={exportToCsv} disabled={isLoading || recentBookings.length === 0}>
                             <Download className="h-4 w-4" />
                             Export to CSV
                         </Button>

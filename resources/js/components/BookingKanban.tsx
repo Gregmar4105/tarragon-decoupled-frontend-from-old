@@ -1,5 +1,4 @@
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { router } from '@inertiajs/react';
 import { Calendar, User, Package } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Badge } from "@/components/ui/badge";
@@ -16,10 +15,12 @@ interface Booking {
 interface BookingInterface {
     id: string;
     customer: string;
+    email: string;
     contact: string;
     bags: Record<string, number>;
     amount: number;
     status: string;
+    payment_status: string;
     source: string;
     checkIn: string;
     checkOut: string;
@@ -28,6 +29,7 @@ interface BookingInterface {
 interface Props {
     bookings: BookingInterface[];
     onStatusChange?: (bookingId: string, newStatus: string) => void;
+    onKanbanStatusChange?: (booking: BookingInterface, newStatus: string) => void;
 }
 
 const getCardBorderStyle = (columnId: string) => {
@@ -69,7 +71,7 @@ const getBadgeStyle = (columnId: string) => {
     }
 };
 
-export default function BookingKanban({ bookings, onStatusChange }: Props) {
+export default function BookingKanban({ bookings, onStatusChange, onKanbanStatusChange }: Props) {
     const [columns, setColumns] = useState<Record<string, Booking[]>>({
         booked: [],
         "checked-in": [],
@@ -128,22 +130,26 @@ export default function BookingKanban({ bookings, onStatusChange }: Props) {
                 [destination.droppableId]: destCol
             });
 
-            // ... (in onDragEnd)
+            // Map column key back to a human-readable status
+            const newStatusMapped = destination.droppableId === 'booked'
+                ? 'Pending'
+                : destination.droppableId
+                    .split('-')
+                    .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join('-');
 
+            // Optimistic UI: notify parent of the visual status change
             if (onStatusChange) {
-                // Call back up to parent (visually optimism)
-                const newStatusMapped = destination.droppableId === 'booked' ? 'Pending' : destination.droppableId.split('-').map((word: string) => word.charAt(0).toUpperCase() + word.slice(1)).join('-');
                 onStatusChange(removed.id, newStatusMapped);
-
-                // Make API call
-                router.put(`/bookings/${removed.id}`, {
-                    status: newStatusMapped.toLowerCase()
-                }, {
-                    preserveScroll: true,
-                    preserveState: true,
-                });
             }
 
+            // Open the Edit modal so the admin can confirm/adjust payment & other fields
+            if (onKanbanStatusChange) {
+                const fullBooking = bookings.find(b => b.id === removed.id);
+                if (fullBooking) {
+                    onKanbanStatusChange(fullBooking, newStatusMapped);
+                }
+            }
         } else {
             const column = [...columns[source.droppableId as keyof typeof columns]];
             const [removed] = column.splice(source.index, 1);

@@ -4,14 +4,28 @@ namespace App\Http\Controllers;
 
 use App\Models\Plan;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use App\Repositories\PlanRepository;
+use App\Services\PlanService;
+use App\Http\Resources\PlanResource;
 
 class PlanController extends Controller
 {
+    private PlanRepository $repository;
+    private PlanService $service;
+
+    public function __construct(PlanRepository $repository, PlanService $service)
+    {
+        $this->repository = $repository;
+        $this->service = $service;
+    }
+
     public function index()
     {
-        $plans = Plan::all();
-        return \Inertia\Inertia::render('plans/index', [
-            'plans' => $plans
+        $paginatedPlans = $this->repository->getPaginatedPlans();
+
+        return Inertia::render('plans/index', [
+            'plans' => PlanResource::collection($paginatedPlans->items())->resolve()
         ]);
     }
 
@@ -34,7 +48,8 @@ class PlanController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        Plan::create($validated);
+        $this->service->createPlan($validated);
+
         return back()->with('success', 'Plan created successfully.');
     }
 
@@ -57,13 +72,15 @@ class PlanController extends Controller
             'is_active' => 'boolean',
         ]);
 
-        $plan->update($validated);
+        $this->service->updatePlan($plan, $validated);
+
         return back()->with('success', 'Plan updated successfully.');
     }
 
     public function destroy(Plan $plan)
     {
-        $plan->delete();
+        $this->service->deletePlan($plan);
+
         return back()->with('success', 'Plan deleted successfully.');
     }
 }
