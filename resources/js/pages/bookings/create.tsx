@@ -1,7 +1,7 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import { router } from '@inertiajs/react'; // Add inertial router for posting data
-import { Calendar, Package, CreditCard, User, Camera, Plus, ArrowLeft, AlertTriangle, ShieldCheck, Clock, Banknote, Tag, CheckCircle } from 'lucide-react'; // Added icons
-import { useState, useMemo } from 'react';
+import { Calendar, Package, CreditCard, User, Camera, Plus, ArrowLeft, AlertTriangle, ShieldCheck, Clock, Banknote, Tag, CheckCircle, X } from 'lucide-react'; // Added icons
+import { useState, useMemo, useRef } from 'react';
 import QRCode from "react-qr-code";
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/context/CurrencyContext';
 import AppLayout from '@/layouts/app-layout';
+import CameraModal from '@/components/CameraModal';
 
 const breadcrumbs = [
     {
@@ -27,98 +28,114 @@ export default function BookingsCreate() {
     const { format } = useCurrency();
     const { props } = usePage() as any;
     const [paymentTiming, setPaymentTiming] = useState<'check-in' | 'check-out'>('check-in');
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [successData, setSuccessData] = useState<any>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [previews, setPreviews] = useState<string[]>([]);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-    // Pricing Logic
-    const PRICES = props.pricing || { small: 5, medium: 10, large: 15 };
-
-    // Customer State
-    const [firstName, setFirstName] = useState('');
-    const [lastName, setLastName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
-
-    // Bags State
-    const [bags, setBags] = useState({ small: 0, medium: 0, large: 0, plus: 0 });
-
-    // Dates State
-    const [dropOffTime, setDropOffTime] = useState('');
-    const [pickUpTime, setPickUpTime] = useState('');
-
-    const [tagNumber, setTagNumber] = useState('');
+    const { data, setData, post, processing, reset, errors, transform } = useForm({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        bags: { small: 0, medium: 0, large: 0, plus: 0 },
+        dropOffTime: '',
+        pickUpTime: '',
+        tagNumber: '',
+        images: [] as File[],
+    });
 
     // Computed Values
-    const totalBags = bags.small + bags.medium + bags.large + bags.plus;
+    const totalBags = data.bags.small + data.bags.medium + data.bags.large + data.bags.plus;
+    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 25 };
 
     const computeDurationAndPrice = useMemo(() => {
-        if (!dropOffTime || !pickUpTime) return { hours: 0, price: 0 };
+        if (!data.dropOffTime || !data.pickUpTime) return { hours: 0, price: 0 };
 
-        const start = new Date(dropOffTime).getTime();
-        const end = new Date(pickUpTime).getTime();
+        const start = new Date(data.dropOffTime).getTime();
+        const end = new Date(data.pickUpTime).getTime();
 
         if (start >= end || isNaN(start) || isNaN(end)) return { hours: 0, price: 0 };
 
-        const hours = Math.ceil((end - start) / (1000 * 60 * 60)); // Round up to nearest hour
+        const hoursTotal = Math.ceil((end - start) / (1000 * 60 * 60)); // Round up to nearest hour
 
-        const baseRate = (bags.small * (PRICES.small || 10)) +
-            (bags.medium * (PRICES.medium || 15)) +
-            (bags.large * (PRICES.large || 20)) +
-            (bags.plus * (PRICES.plus || 25));
-        const dailyRatePeriods = Math.ceil(hours / 24) || 1; // Ensure at least 1 day if hours < 24
+        const baseRate = (data.bags.small * (PRICES.small)) +
+            (data.bags.medium * (PRICES.medium)) +
+            (data.bags.large * (PRICES.large)) +
+            (data.bags.plus * (PRICES.plus));
+        const dailyRatePeriods = Math.ceil(hoursTotal / 24) || 1; // Ensure at least 1 day if hours < 24
         const price = baseRate * dailyRatePeriods;
 
-        return { hours, price };
-    }, [dropOffTime, pickUpTime, bags, PRICES]);
+        return { hours: hoursTotal, price };
+    }, [data.dropOffTime, data.pickUpTime, data.bags, PRICES]);
 
     const { hours, price } = computeDurationAndPrice;
 
-    const handleConfirmBooking = () => {
-        if (!firstName || !email || !dropOffTime || !pickUpTime || totalBags === 0) {
+    const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const newFiles = Array.from(e.target.files);
+            setData('images', [...data.images, ...newFiles]);
+
+            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+            setPreviews(prev => [...prev, ...newPreviews]);
+        }
+    };
+
+    const removePhoto = (index: number) => {
+        const newImages = [...data.images];
+        newImages.splice(index, 1);
+        setData('images', newImages);
+
+        const newPreviews = [...previews];
+        URL.revokeObjectURL(newPreviews[index]);
+        newPreviews.splice(index, 1);
+        setPreviews(newPreviews);
+    };
+
+    const handleCameraPhotos = (files: File[]) => {
+        setData('images', [...data.images, ...files]);
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
+        setIsCameraOpen(false);
+    };
+
+    // Transform data for backend
+    transform((data) => ({
+        customer_name: `${data.firstName} ${data.lastName}`.trim(),
+        customer_email: data.email,
+        customer_phone: data.phone,
+        drop_off_time: data.dropOffTime,
+        pick_up_time: data.pickUpTime,
+        total_price: price,
+        tag_number: data.tagNumber,
+        images: data.images,
+        items: data.bags,
+        source: 'admin',
+    }));
+
+    const submitBooking = () => {
+        if (!data.firstName || !data.email || !data.dropOffTime || !data.pickUpTime || totalBags === 0) {
             alert('Please fill out the required core details and add at least one bag.');
             return;
         }
 
-        setIsSubmitting(true);
-        router.post('/bookings', {
-            customer_name: `${firstName} ${lastName}`.trim(),
-            customer_email: email,
-            customer_phone: phone,
-            drop_off_time: dropOffTime,
-            pick_up_time: pickUpTime,
-            total_price: price,
-            items: bags,
-            source: 'admin',
-        }, {
+        post('/bookings', {
+            forceFormData: true,
             onSuccess: (page) => {
                 const flash = page.props.flash as any;
                 if (flash?.successBookingId) {
                     setSuccessData({
                         id: flash.successBookingId,
-                        customer: `${firstName} ${lastName}`.trim() || email,
-                        dropoff: dropOffTime,
-                        pickup: pickUpTime,
+                        customer: `${data.firstName} ${data.lastName}`.trim() || data.email,
+                        dropoff: data.dropOffTime,
+                        pickup: data.pickUpTime,
                         bags: totalBags,
                         total: price
                     });
-                } else {
-                    alert('Walk-in Booking created successfully!');
                 }
-
-                setFirstName('');
-                setLastName('');
-                setEmail('');
-                setPhone('');
-                setDropOffTime('');
-                setPickUpTime('');
-                setBags({ small: 0, medium: 0, large: 0, plus: 0 });
-                setTagNumber('');
+                reset();
+                setPreviews([]);
             },
-            onFinish: () => setIsSubmitting(false),
-            onError: (errors) => {
-                console.error("Booking failed:", errors);
-                alert("Failed to process the booking.");
-            }
         });
     };
 
@@ -222,20 +239,20 @@ export default function BookingsCreate() {
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
                                         <Label htmlFor="first-name">First Name</Label>
-                                        <Input id="first-name" placeholder="First Name" value={firstName} onChange={e => setFirstName(e.target.value)} />
+                                        <Input id="first-name" placeholder="First Name" value={data.firstName} onChange={e => setData('firstName', e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="last-name">Last Name</Label>
-                                        <Input id="last-name" placeholder="Last Name" value={lastName} onChange={e => setLastName(e.target.value)} />
+                                        <Input id="last-name" placeholder="Last Name" value={data.lastName} onChange={e => setData('lastName', e.target.value)} />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="email">Email</Label>
-                                    <Input id="email" type="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} />
+                                    <Input id="email" type="email" placeholder="email@example.com" value={data.email} onChange={e => setData('email', e.target.value)} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="phone">Phone Number</Label>
-                                    <Input id="phone" type="tel" placeholder="+63 900 000 0000" value={phone} onChange={e => setPhone(e.target.value)} />
+                                    <Input id="phone" type="tel" placeholder="+63 900 000 0000" value={data.phone} onChange={e => setData('phone', e.target.value)} />
                                 </div>
                             </CardContent>
                         </Card>
@@ -294,8 +311,8 @@ export default function BookingsCreate() {
                                         </div>
                                     </div>
 
-                                    <Button size="lg" className="w-full font-bold h-12 text-base shadow-lg shadow-orange-500/20 bg-orange-500 hover:bg-orange-600 text-white transition-all hover:translate-y-[-1px]" onClick={handleConfirmBooking} disabled={isSubmitting || price === 0}>
-                                        {isSubmitting ? 'Confirming...' : 'Confirm Booking'}
+                                    <Button size="lg" className="w-full font-bold h-12 text-base shadow-lg shadow-orange-500/20 bg-orange-500 hover:bg-orange-600 text-white transition-all hover:translate-y-[-1px]" onClick={submitBooking} disabled={processing || price === 0}>
+                                        {processing ? 'Confirming...' : 'Confirm Booking'}
                                     </Button>
                                 </div>
                             </CardContent>
@@ -314,28 +331,28 @@ export default function BookingsCreate() {
                                         <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
                                             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Small</label>
                                             <div className="flex items-center gap-2">
-                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.small || ''} onChange={e => setBags(b => ({ ...b, small: parseInt(e.target.value) || 0 }))} />
+                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={data.bags.small || ''} onChange={e => setData('bags', { ...data.bags, small: parseInt(e.target.value) || 0 })} />
                                                 <span className="text-xs text-muted-foreground hidden lg:inline">Cabin</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
                                             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Medium</label>
                                             <div className="flex items-center gap-2">
-                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.medium || ''} onChange={e => setBags(b => ({ ...b, medium: parseInt(e.target.value) || 0 }))} />
+                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={data.bags.medium || ''} onChange={e => setData('bags', { ...data.bags, medium: parseInt(e.target.value) || 0 })} />
                                                 <span className="text-xs text-muted-foreground hidden lg:inline">Check-in</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
                                             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Large</label>
                                             <div className="flex items-center gap-2">
-                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.large || ''} onChange={e => setBags(b => ({ ...b, large: parseInt(e.target.value) || 0 }))} />
+                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={data.bags.large || ''} onChange={e => setData('bags', { ...data.bags, large: parseInt(e.target.value) || 0 })} />
                                                 <span className="text-xs text-muted-foreground hidden lg:inline">Oversize</span>
                                             </div>
                                         </div>
                                         <div className="space-y-2 border rounded-lg p-3 bg-gray-50/50">
                                             <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">Plus Size</label>
                                             <div className="flex items-center gap-2">
-                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={bags.plus || ''} onChange={e => setBags(b => ({ ...b, plus: parseInt(e.target.value) || 0 }))} />
+                                                <Input type="number" min="0" placeholder="0" className="bg-white" value={data.bags.plus || ''} onChange={e => setData('bags', { ...data.bags, plus: parseInt(e.target.value) || 0 })} />
                                                 <span className="text-xs text-muted-foreground hidden lg:inline">Surf/Golf</span>
                                             </div>
                                         </div>
@@ -347,14 +364,14 @@ export default function BookingsCreate() {
                                         <Label>Drop-off Time</Label>
                                         <div className="relative">
                                             <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input type="datetime-local" className="pl-9" value={dropOffTime} onChange={e => setDropOffTime(e.target.value)} />
+                                            <Input type="datetime-local" className="pl-9" value={data.dropOffTime} onChange={e => setData('dropOffTime', e.target.value)} />
                                         </div>
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Pick-up Time</Label>
                                         <div className="relative">
                                             <Calendar className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                            <Input type="datetime-local" className="pl-9" value={pickUpTime} onChange={e => setPickUpTime(e.target.value)} />
+                                            <Input type="datetime-local" className="pl-9" value={data.pickUpTime} onChange={e => setData('pickUpTime', e.target.value)} />
                                         </div>
                                     </div>
                                 </div>
@@ -363,24 +380,85 @@ export default function BookingsCreate() {
                                     <Label>Tag Number</Label>
                                     <div className="relative">
                                         <Tag className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                                        <Input placeholder="e.g. A-123" className="pl-9" value={tagNumber} onChange={e => setTagNumber(e.target.value)} />
+                                        <Input placeholder="e.g. A-123" className="pl-9" value={data.tagNumber} onChange={e => setData('tagNumber', e.target.value)} />
                                     </div>
                                 </div>
 
-                                <div className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-3 hover:bg-gray-50/80 hover:border-orange-400 cursor-pointer transition-all group">
-                                    <div className="bg-gray-100 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
-                                        <Camera className="w-6 h-6 text-gray-500 group-hover:text-orange-500" />
-                                    </div>
-                                    <div className="space-y-1">
-                                        <p className="font-semibold text-gray-900">Take Bag Photo</p>
-                                        <p className="text-sm text-muted-foreground max-w-xs mx-auto">Capture visual proof of the bag's condition before storage.</p>
-                                    </div>
+                                <div className="space-y-4">
+                                    <Label>Baggage Photos</Label>
+                                    
+                                    {previews.length > 0 && (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+                                            {previews.map((preview, index) => (
+                                                <div key={index} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                                                    <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                                                    <button 
+                                                        onClick={() => removePhoto(index)}
+                                                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                                    >
+                                                        <X className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                            <div 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="aspect-square rounded-xl border-2 border-dashed border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-50 hover:border-orange-400 transition-all"
+                                            >
+                                                <Plus className="w-6 h-6 text-gray-400" />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    <input 
+                                        type="file" 
+                                        ref={fileInputRef} 
+                                        className="hidden" 
+                                        accept="image/*" 
+                                        multiple 
+                                        onChange={handlePhotoChange} 
+                                    />
+
+                                    {previews.length === 0 && (
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div 
+                                                onClick={() => fileInputRef.current?.click()}
+                                                className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-3 hover:bg-gray-50/80 hover:border-orange-400 cursor-pointer transition-all group"
+                                            >
+                                                <div className="bg-gray-100 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
+                                                    <Plus className="w-6 h-6 text-gray-500 group-hover:text-orange-500" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-semibold text-gray-900">Upload Photos</p>
+                                                    <p className="text-sm text-muted-foreground">Select images from device.</p>
+                                                </div>
+                                            </div>
+
+                                            <div 
+                                                onClick={() => setIsCameraOpen(true)}
+                                                className="border-2 border-dashed border-gray-200 rounded-xl p-8 flex flex-col items-center justify-center text-center gap-3 hover:bg-gray-50/80 hover:border-orange-400 cursor-pointer transition-all group"
+                                            >
+                                                <div className="bg-gray-100 p-3 rounded-full group-hover:bg-orange-100 transition-colors">
+                                                    <Camera className="w-6 h-6 text-gray-500 group-hover:text-orange-500" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="font-semibold text-gray-900">Live Camera</p>
+                                                    <p className="text-sm text-muted-foreground">Take photos now.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
                     </div>
                 )}
             </div>
+
+            <CameraModal 
+                isOpen={isCameraOpen} 
+                onClose={() => setIsCameraOpen(false)} 
+                onPhotosCaptured={handleCameraPhotos} 
+            />
         </AppLayout>
     );
 }

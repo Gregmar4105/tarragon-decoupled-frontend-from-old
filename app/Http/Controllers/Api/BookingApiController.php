@@ -8,6 +8,8 @@ use App\Models\Booking;
 use App\Models\Plan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\BookingConfirmation;
 use Carbon\Carbon;
 
 class BookingApiController extends Controller
@@ -47,19 +49,25 @@ class BookingApiController extends Controller
 
             DB::transaction(function () use ($validated, &$bookingReference, $smallCount, $mediumCount, $largeCount, $plusCount) {
                 // Determine the correct plan based on the billing cycle required
+                // Prioritize 'is_popular' and then 'id' descending to get the most relevant active plan
                 $plan = Plan::where('billing_cycle', $validated['billing_cycle'])
                             ->where('is_active', true)
+                            ->orderBy('is_popular', 'desc')
+                            ->orderBy('id', 'desc')
                             ->first();
 
-                // Fallback plan if missing
+                // Fallback plan if missing (Last resort safety)
                 if (!$plan) {
-                    $plan = Plan::first();
+                    $plan = Plan::where('is_active', true)->first();
                     if (!$plan) {
                         $plan = Plan::create([
                             'name' => ucfirst($validated['billing_cycle']) . ' Rate', 
                             'billing_cycle' => $validated['billing_cycle'],
                             'duration_hours' => $validated['billing_cycle'] === 'daily' ? 24 : 1, 
-                            'price' => 5, 
+                            'price_small' => 5, 
+                            'price_medium' => 10,
+                            'price_large' => 15,
+                            'price_plus' => 25,
                             'is_active' => true
                         ]);
                     }
@@ -74,8 +82,6 @@ class BookingApiController extends Controller
 
                 $unitsToBill = $plan->billing_cycle === 'daily' ? ceil($durationHours / 24) : $durationHours;
                 if ($unitsToBill < 1) $unitsToBill = 1;
-
-
 
                 // Base fallback price
                 $basePrice = $plan->price ?? 0;
@@ -124,6 +130,13 @@ class BookingApiController extends Controller
                     'payment_method' => 'cash',
                     'transaction_reference' => 'TXN' . strtoupper(uniqid()),
                 ]);
+
+                // Trigger confirmation email
+                try {
+                    Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send AI booking confirmation email: ' . $e->getMessage());
+                }
             });
 
             return response()->json([

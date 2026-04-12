@@ -11,7 +11,7 @@ const DEFAULT_PRICES = { small: 5, medium: 10, large: 15, plus: 20 };
 
 export default function BookingModal({ children, source = 'online' }: { children: React.ReactNode, source?: 'online' | 'admin' }) {
     const { props } = usePage() as any;
-    const PRICES = props.pricing || DEFAULT_PRICES; // Fallback
+    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 25 }; 
     const { format, convert } = useCurrency();
 
     const [step, setStep] = useState(1);
@@ -56,13 +56,13 @@ export default function BookingModal({ children, source = 'online' }: { children
             return;
         }
 
-        const hours = Math.ceil((end - start) / (1000 * 60 * 60));
-        const dailyRatePeriods = Math.ceil(hours / 24) || 1;
+        const hoursTotal = Math.ceil((end - start) / (1000 * 60 * 60));
+        const dailyRatePeriods = Math.ceil(hoursTotal / 24) || 1;
 
-        const baseRate = (counts.small * (PRICES.small || 10)) +
-            (counts.medium * (PRICES.medium || 15)) +
-            (counts.large * (PRICES.large || 20)) +
-            (counts.plus * (PRICES.plus || 25));
+        const baseRate = (counts.small * (PRICES.small)) +
+            (counts.medium * (PRICES.medium)) +
+            (counts.large * (PRICES.large)) +
+            (counts.plus * (PRICES.plus));
 
         setSubtotal(baseRate * dailyRatePeriods);
     }, [counts, PRICES, dates]);

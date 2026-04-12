@@ -1,4 +1,4 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { motion } from 'framer-motion';
 import {
     ShieldCheck,
@@ -25,6 +25,9 @@ import { useCurrency } from '@/context/CurrencyContext';
 
 export default function Welcome() {
     const { format } = useCurrency();
+    const { props } = usePage() as any;
+    const pricing = props.pricing || { small: 5 };
+
     return (
         <>
             <Head title="Tarragon Manila - Luggage Storage Near NAIA Terminal 3" />
@@ -123,7 +126,7 @@ export default function Welcome() {
                                                         </p>
                                                     </div>
                                                     <div className="flex flex-col items-end text-gray-900">
-                                                        <span className="font-bold text-lg text-orange-600">{format(5)}</span>
+                                                        <span className="font-bold text-lg text-orange-600">{format(pricing.small)}</span>
                                                         <span className="text-xs text-gray-500">/day</span>
                                                     </div>
                                                 </div>

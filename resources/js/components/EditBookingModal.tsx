@@ -1,4 +1,4 @@
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -19,16 +19,20 @@ interface BookingInterface {
     source: string;
     checkIn: string;
     checkOut: string;
+    tag_number?: string;
+    notes?: string;
 }
 
 interface Props {
     isOpen: boolean;
-    onClose: () => void;
+    onClose: (success?: boolean) => void;
     booking: BookingInterface | null;
 }
 
 export function EditBookingModal({ isOpen, onClose, booking }: Props) {
     const { format } = useCurrency();
+    const { props } = usePage() as any;
+    const PRICES = props.pricing || { small: 5, medium: 10, large: 15, plus: 25 };
 
     // Parse the Inertia formatted dates back to html input compatible strings (YYYY-MM-DDThh:mm)
     const formatForInput = (dateString?: string) => {
@@ -56,6 +60,8 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         pick_up_time: '',
         status: '',
         payment_status: '',
+        tag_number: '',
+        notes: '',
         total_price: 0
     });
 
@@ -74,6 +80,8 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                 pick_up_time: formatForInput(booking.checkOut),
                 status: booking.status.toLowerCase(),
                 payment_status: booking.payment_status?.toLowerCase() || 'pending',
+                tag_number: booking.tag_number || '',
+                notes: booking.notes || '',
                 total_price: booking.amount,
             });
             clearErrors();
@@ -82,11 +90,24 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         }
     }, [booking, isOpen]);
 
-    // Simple recalculation mapping based on a standard plan (can be made dynamic)
-    const recalculatePrice = (newBags: any) => {
-        // Assume Standard Plan logic: 100 per bag
-        const count = Object.values(newBags).reduce((sum, val) => (sum as number) + (Number(val) || 0), 0);
-        return (count as number) * 100;
+    // Sophisticated recalculation based on plan and duration
+    const recalculatePrice = (newBags: any, checkIn?: string, checkOut?: string) => {
+        if (!checkIn || !checkOut) return data.total_price;
+
+        const start = new Date(checkIn).getTime();
+        const end = new Date(checkOut).getTime();
+
+        if (start >= end || isNaN(start) || isNaN(end)) return 0;
+
+        const hoursTotal = Math.ceil((end - start) / (1000 * 60 * 60));
+        const dailyRatePeriods = Math.ceil(hoursTotal / 24) || 1;
+
+        const baseRate = (newBags.small * (PRICES.small)) +
+            (newBags.medium * (PRICES.medium)) +
+            (newBags.large * (PRICES.large)) +
+            (newBags.plus * (PRICES.plus));
+
+        return baseRate * dailyRatePeriods;
     };
 
     const handleBagChange = (type: 'small' | 'medium' | 'large' | 'plus', val: string) => {
@@ -95,7 +116,15 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
         setData(prev => ({
             ...prev,
             bags: newBags,
-            total_price: recalculatePrice(newBags)
+            total_price: recalculatePrice(newBags, data.drop_off_time, data.pick_up_time)
+        }));
+    };
+
+    const handleTimeChange = (type: 'drop_off_time' | 'pick_up_time', val: string) => {
+        setData(prev => ({
+            ...prev,
+            [type]: val,
+            total_price: recalculatePrice(data.bags, type === 'drop_off_time' ? val : data.drop_off_time, type === 'pick_up_time' ? val : data.pick_up_time)
         }));
     };
 
@@ -108,7 +137,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Booking successfully updated');
-                onClose();
+                onClose(true);
             },
             onError: (err) => {
                 toast.error('Failed to update booking. Please check the inputs.');
@@ -119,10 +148,10 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
 
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[425px]" onOpenAutoFocus={(e) => e.preventDefault()}>
                 <form onSubmit={submit}>
                     <DialogHeader>
-                        <DialogTitle>Edit Booking {booking?.id}</DialogTitle>
+                        <DialogTitle>Booking {booking?.id}</DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
                         <div className="grid grid-cols-4 items-center gap-4">
@@ -150,7 +179,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                                 type="datetime-local"
                                 id="drop_off_time"
                                 value={data.drop_off_time}
-                                onChange={e => setData('drop_off_time', e.target.value)}
+                                onChange={e => handleTimeChange('drop_off_time', e.target.value)}
                                 className="col-span-3"
                             />
                             {errors.drop_off_time && <span className="col-span-4 text-xs text-red-500 text-right">{errors.drop_off_time}</span>}
@@ -161,7 +190,7 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                                 type="datetime-local"
                                 id="pick_up_time"
                                 value={data.pick_up_time}
-                                onChange={e => setData('pick_up_time', e.target.value)}
+                                onChange={e => handleTimeChange('pick_up_time', e.target.value)}
                                 className="col-span-3"
                             />
                             {errors.pick_up_time && <span className="col-span-4 text-xs text-red-500 text-right">{errors.pick_up_time}</span>}
@@ -195,6 +224,28 @@ export function EditBookingModal({ isOpen, onClose, booking }: Props) {
                                 </SelectContent>
                             </Select>
                             {errors.payment_status && <span className="col-span-4 text-xs text-red-500 text-right">{errors.payment_status}</span>}
+                        </div>
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="tag_number" className="text-right">Tag No.</Label>
+                            <Input
+                                id="tag_number"
+                                value={data.tag_number}
+                                onChange={e => setData('tag_number', e.target.value)}
+                                className="col-span-3"
+                                placeholder="e.g. A-123"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="edit_notes" className="text-right">Notes</Label>
+                            <Input
+                                id="edit_notes"
+                                value={data.notes}
+                                onChange={e => setData('notes', e.target.value)}
+                                className="col-span-3"
+                                placeholder="Internal notes..."
+                            />
                         </div>
 
                         <div className="border-t pt-4 mt-2">

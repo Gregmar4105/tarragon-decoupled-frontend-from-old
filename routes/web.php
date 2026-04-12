@@ -7,6 +7,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\Api\AnalyticsController;
 
 
 Route::get('/', function () {
@@ -15,7 +16,7 @@ Route::get('/', function () {
 
 Route::get('login', function () {
     return Inertia::render('auth/login');
-})->name('login');
+})->middleware('guest')->name('login');
 
 Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
 
@@ -102,5 +103,9 @@ Route::get('reports/export', [ReportController::class, 'export'])
 Route::get('reports', [ReportController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('reports');
+
+Route::post('reports/ai-analyze', [AnalyticsController::class, 'analyze'])
+    ->middleware(['auth', 'verified'])
+    ->name('reports.ai-analyze');
 
 require __DIR__.'/settings.php';

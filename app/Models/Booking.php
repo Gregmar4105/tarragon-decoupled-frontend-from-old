@@ -23,6 +23,13 @@ class Booking extends Model
         'booking_reference',
         'source',
         'qr_code_path',
+        'tag_number',
+        'photos',
+        'notes',
+    ];
+
+    protected $casts = [
+        'photos' => 'array',
     ];
 
     /**

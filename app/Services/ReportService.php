@@ -35,11 +35,20 @@ class ReportService
 
         $bookings = $this->repository->getBookingsWithinRange($startDate, $endDate);
 
+        $totalRevenue = 0;
+        $totalBags = 0;
+        $totalBookings = $bookings->count();
+
         foreach ($bookings as $booking) {
             $dateKey = $booking->created_at->format('Y-m-d');
+            $bookingBags = $booking->items->sum('quantity');
+            
             if (isset($dailyBookings[$dateKey])) {
-                $dailyBookings[$dateKey]['bookings'] += $booking->items->sum('quantity');
+                $dailyBookings[$dateKey]['bookings'] += $bookingBags;
             }
+
+            $totalRevenue += $booking->total_price;
+            $totalBags += $bookingBags;
         }
 
         $onlineCount = $this->repository->getBookingCountBySource($startDate, $endDate, 'online');
@@ -52,7 +61,27 @@ class ReportService
 
         return [
             'dailyTrend' => array_values($dailyBookings),
-            'sourceDistribution' => $sourceData
+            'sourceDistribution' => $sourceData,
+            'summary' => [
+                'totalBookings' => $totalBookings,
+                'totalBags' => $totalBags,
+                'totalRevenue' => $totalRevenue,
+                'avgBookingValue' => $totalBookings > 0 ? $totalRevenue / $totalBookings : 0,
+            ],
+            'recentBookings' => $bookings->map(function ($booking) {
+                return [
+                    'id' => $booking->id,
+                    'reference' => $booking->booking_reference,
+                    'customer_name' => $booking->customer_name,
+                    'customer_email' => $booking->customer_email,
+                    'customer_phone' => $booking->customer_phone,
+                    'total_price' => $booking->total_price,
+                    'status' => $booking->status,
+                    'source' => $booking->source,
+                    'created_at' => $booking->created_at->format('Y-m-d H:i'),
+                    'bags' => $booking->items->sum('quantity'),
+                ];
+            })
         ];
     }
 

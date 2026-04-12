@@ -116,6 +116,29 @@ export default function BookingShow({ booking }: { booking: any }) {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {booking.photos && booking.photos.length > 0 && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Bag Photos</CardTitle>
+                                    <CardDescription>Visual proof of condition at check-in.</CardDescription>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        {booking.photos.map((photo: string, index: number) => (
+                                            <div key={index} className="aspect-square rounded-xl overflow-hidden border border-gray-200 shadow-sm">
+                                                <img 
+                                                    src={`/storage/${photo}`} 
+                                                    alt={`Bag Photo ${index + 1}`} 
+                                                    className="w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer"
+                                                    onClick={() => window.open(`/storage/${photo}`, '_blank')}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
                     </div>
 
                     {/* Sidebar Details */}

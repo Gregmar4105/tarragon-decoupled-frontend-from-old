@@ -12,7 +12,8 @@ import {
     ScanLine,
     Eye,
     Pencil,
-    Trash2
+    Trash2,
+    Camera
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import BookingKanban from '@/components/BookingKanban';
@@ -137,14 +138,29 @@ export default function Bookings({ initialBookings }: Props) {
         return () => clearInterval(interval);
     }, []);
 
-    const handleCheckIn = (bookingId: string, tagNumber: string, notes?: string) => {
-        setBookings(currentBookings =>
-            currentBookings.map(booking =>
-                booking.id === bookingId
-                    ? { ...booking, status: 'Checked-in', tagNumber, notes }
-                    : booking
-            )
-        );
+    const handleCheckIn = (bookingId: string, data: { tagNumber: string, notes?: string, photos: File[], paymentStatus: string }) => {
+        // Prepare multipart form data for Inertia
+        const formData = {
+            tag_number: data.tagNumber,
+            notes: data.notes,
+            images: data.photos,
+            payment_status: data.paymentStatus,
+            status: 'checked-in', // Automatically set status to checked-in
+        };
+
+        router.post(`/bookings/${bookingId}`, {
+            ...formData,
+            _method: 'put',
+        }, {
+            forceFormData: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                setIsScannerOpen(false);
+            },
+            onError: (err) => {
+                console.error("Check-in error:", err);
+            }
+        });
     };
 
     // Called when a card is dragged to a new Kanban column.
@@ -379,10 +395,12 @@ export default function Bookings({ initialBookings }: Props) {
 
                 <EditBookingModal
                     isOpen={isEditModalOpen}
-                    onClose={() => {
+                    onClose={(success) => {
                         setIsEditModalOpen(false);
-                        // Revert optimistic Kanban updates if modal is closed without saving
-                        setBookings(initialBookings || []);
+                        // Revert optimistic Kanban updates ONLY if modal is closed without saving
+                        if (!success) {
+                            setBookings(initialBookings || []);
+                        }
                     }}
                     booking={selectedBooking}
                 />

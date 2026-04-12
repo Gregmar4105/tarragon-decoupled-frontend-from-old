@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Settings\AIAssistantController;
+use App\Http\Controllers\Settings\EmailSettingsController;
 use App\Http\Controllers\Settings\PasswordController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\TwoFactorAuthenticationController;
@@ -25,6 +27,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('settings/appearance', function () {
         return Inertia::render('settings/appearance');
     })->name('appearance.edit');
+
+    Route::get('settings/ai-assistant', [AIAssistantController::class, 'edit'])->name('ai-assistant.edit');
+    Route::patch('settings/ai-assistant', [AIAssistantController::class, 'update'])->name('ai-assistant.update');
+    Route::post('settings/ai-assistant/test', [AIAssistantController::class, 'testConnection'])->name('ai-assistant.test');
+
+    Route::get('settings/email', [EmailSettingsController::class, 'edit'])->name('email.edit');
+    Route::patch('settings/email', [EmailSettingsController::class, 'update'])->name('email.update');
+    Route::post('settings/email/test', [EmailSettingsController::class, 'testConnection'])->name('email.test');
 
     Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
         ->name('two-factor.show');

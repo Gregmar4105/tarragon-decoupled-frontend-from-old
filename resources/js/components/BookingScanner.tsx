@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCurrency } from '@/context/CurrencyContext';
+import CameraModal from './CameraModal';
+import { Badge } from './ui/badge';
 
 interface Booking {
     id: string;
@@ -25,7 +28,7 @@ interface BookingScannerProps {
     isOpen: boolean;
     onClose: () => void;
     bookings: Booking[];
-    onCheckIn: (bookingId: string, tagNumber: string, notes?: string) => void;
+    onCheckIn: (bookingId: string, data: { tagNumber: string, notes?: string, photos: File[], paymentStatus: string }) => void;
 }
 
 export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }: BookingScannerProps) {
@@ -39,6 +42,9 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
     // Check-in form state
     const [tagNumber, setTagNumber] = useState('');
     const [notes, setNotes] = useState('');
+    const [paymentStatus, setPaymentStatus] = useState('pending');
+    const [capturedPhotos, setCapturedPhotos] = useState<File[]>([]);
+    const [isCameraOpen, setIsCameraOpen] = useState(false);
 
     const scannerRef = useRef<Html5Qrcode | null>(null);
 
@@ -135,7 +141,12 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
 
     const handleManualCheckIn = () => {
         if (foundBooking) {
-            onCheckIn(foundBooking.id, tagNumber, notes);
+            onCheckIn(foundBooking.id, {
+                tagNumber,
+                notes,
+                photos: capturedPhotos,
+                paymentStatus: paymentStatus
+            });
             onClose();
         }
     };
@@ -162,7 +173,7 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
 
                 <div className="py-2">
                     {/* Scanner Custom UI */}
-                    <div className={`relative w-full overflow-hidden rounded-lg bg-black ${!scanResult ? 'aspect-square' : 'hidden'}`}>
+                    <div className={`relative w-full overflow-hidden rounded-lg bg-black ${!scanResult ? 'aspect-square' : 'hidden'} [&_video]:-scale-x-100`}>
                         <div id="reader-custom" className="w-full h-full"></div>
 
                         {/* Overlay elements */}
@@ -266,6 +277,57 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
                                         onChange={(e) => setNotes(e.target.value)}
                                     />
                                 </div>
+
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <Label>Luggage Photos</Label>
+                                        <Button 
+                                            type="button" 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => setIsCameraOpen(true)}
+                                            className="gap-2"
+                                        >
+                                            <Camera className="h-4 w-4" />
+                                            Capture Photo
+                                        </Button>
+                                    </div>
+
+                                    {capturedPhotos.length > 0 && (
+                                        <div className="h-28 w-full rounded-md border p-2 overflow-x-auto">
+                                            <div className="flex gap-2 min-w-max pb-2">
+                                                {capturedPhotos.map((file, i) => (
+                                                    <div key={i} className="relative group min-w-[80px] h-20">
+                                                        <img 
+                                                            src={URL.createObjectURL(file)} 
+                                                            className="w-full h-full object-cover rounded-md border shadow-sm" 
+                                                        />
+                                                        <button 
+                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                                                            onClick={() => setCapturedPhotos(prev => prev.filter((_, idx) => idx !== i))}
+                                                        >
+                                                            <X className="h-3 w-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <p className="text-xs text-muted-foreground">{capturedPhotos.length} photos added. (Unlimited)</p>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label>Payment Status</Label>
+                                    <Select value={paymentStatus} onValueChange={setPaymentStatus}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select Payment Status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="pending">Pending</SelectItem>
+                                            <SelectItem value="paid">Paid</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -291,6 +353,14 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
                     )}
                 </DialogFooter>
             </DialogContent>
+
+            <CameraModal 
+                isOpen={isCameraOpen}
+                onClose={() => setIsCameraOpen(false)}
+                onPhotosCaptured={(files) => {
+                    setCapturedPhotos(prev => [...prev, ...files]);
+                }}
+            />
         </Dialog>
     );
 }

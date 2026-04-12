@@ -48,6 +48,7 @@ class HandleInertiaRequests extends Middleware
 
                 if ($plan) {
                     return [
+                        'name' => $plan->name,
                         'small' => (float) $plan->price_small,
                         'medium' => (float) $plan->price_medium,
                         'large' => (float) $plan->price_large,
@@ -56,10 +57,11 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 return [
-                    'small' => config('pricing.small', 5),
-                    'medium' => config('pricing.medium', 10),
-                    'large' => config('pricing.large', 15),
-                    'plus' => config('pricing.plus', 20),
+                    'name' => 'Standard Rate',
+                    'small' => 5.0,
+                    'medium' => 10.0,
+                    'large' => 15.0,
+                    'plus' => 25.0,
                 ];
             },
             'flash' => [

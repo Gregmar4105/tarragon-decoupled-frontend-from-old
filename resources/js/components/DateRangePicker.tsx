@@ -6,7 +6,7 @@ import * as React from "react"
 import type { DateRange} from "react-day-picker";
 import { DayPicker } from "react-day-picker"
 
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 import {
     Popover,
     PopoverContent,
@@ -141,6 +141,39 @@ export function DateRangePicker({
                                 numberOfMonths={1}
                                 showOutsideDays
                                 className="p-3"
+                                classNames={{
+                                    months: "flex flex-col sm:flex-row gap-4",
+                                    month: "flex flex-col gap-4",
+                                    month_caption: "hidden",
+                                    caption_label: "text-sm font-medium",
+                                    nav: "flex items-center gap-1",
+                                    button_previous: cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                                    ),
+                                    button_next: cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                                    ),
+                                    month_grid: "w-full border-collapse",
+                                    weekdays: "flex",
+                                    weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] text-center",
+                                    week: "flex w-full mt-2",
+                                    day: "p-0 text-center text-sm relative",
+                                    day_button: cn(
+                                        buttonVariants({ variant: "ghost" }),
+                                        "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+                                    ),
+                                    range_start: "day-range-start rounded-l-md",
+                                    range_end: "day-range-end rounded-r-md",
+                                    selected:
+                                        "bg-orange-500 text-white hover:bg-orange-600 hover:text-white focus:bg-orange-500 focus:text-white rounded-md",
+                                    today: "bg-accent text-accent-foreground rounded-md",
+                                    outside: "text-muted-foreground opacity-50",
+                                    disabled: "text-muted-foreground opacity-50",
+                                    range_middle: "aria-selected:bg-orange-100 aria-selected:text-orange-900 dark:aria-selected:bg-orange-950 dark:aria-selected:text-orange-100",
+                                    hidden: "invisible",
+                                }}
                             />
                         </div>
 
@@ -187,6 +220,39 @@ export function DateRangePicker({
                                 numberOfMonths={1}
                                 showOutsideDays
                                 className="p-3"
+                                classNames={{
+                                    months: "flex flex-col sm:flex-row gap-4",
+                                    month: "flex flex-col gap-4",
+                                    month_caption: "hidden",
+                                    caption_label: "text-sm font-medium",
+                                    nav: "flex items-center gap-1",
+                                    button_previous: cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "absolute left-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                                    ),
+                                    button_next: cn(
+                                        buttonVariants({ variant: "outline" }),
+                                        "absolute right-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100"
+                                    ),
+                                    month_grid: "w-full border-collapse",
+                                    weekdays: "flex",
+                                    weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] text-center",
+                                    week: "flex w-full mt-2",
+                                    day: "p-0 text-center text-sm relative",
+                                    day_button: cn(
+                                        buttonVariants({ variant: "ghost" }),
+                                        "h-9 w-9 p-0 font-normal aria-selected:opacity-100"
+                                    ),
+                                    range_start: "day-range-start rounded-l-md",
+                                    range_end: "day-range-end rounded-r-md",
+                                    selected:
+                                        "bg-orange-500 text-white hover:bg-orange-600 hover:text-white focus:bg-orange-500 focus:text-white rounded-md",
+                                    today: "bg-accent text-accent-foreground rounded-md",
+                                    outside: "text-muted-foreground opacity-50",
+                                    disabled: "text-muted-foreground opacity-50",
+                                    range_middle: "aria-selected:bg-orange-100 aria-selected:text-orange-900 dark:aria-selected:bg-orange-950 dark:aria-selected:text-orange-100",
+                                    hidden: "invisible",
+                                }}
                             />
                         </div>
                     </div>

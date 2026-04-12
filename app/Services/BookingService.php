@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\Mail\BookingConfirmation;
 use App\Models\Booking;
 use App\Models\User;
 use App\Notifications\NewOnlineBookingNotification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Exception;
 use Carbon\Carbon;
@@ -28,6 +30,22 @@ class BookingService
             $this->storeBookingItems($booking, $data['items']);
             $this->storeInitialTransaction($booking, $data['total_price']);
 
+            if (isset($data['images']) && is_array($data['images'])) {
+                $photoPaths = [];
+                foreach ($data['images'] as $image) {
+                    $path = $image->store('bookings', 'public');
+                    $photoPaths[] = $path;
+                }
+                $booking->update(['photos' => $photoPaths]);
+            }
+
+            // Send confirmation email to client
+            try {
+                Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+            }
+
             if ($source !== 'admin') {
                 $this->notifyAdmins($booking);
             }
@@ -46,6 +64,8 @@ class BookingService
     public function updateBooking(Booking $booking, array $data): Booking
     {
         return DB::transaction(function () use ($booking, $data) {
+            $oldStatus = $booking->status;
+            
             $this->updateBookingDetails($booking, $data);
 
             if (isset($data['bags'])) {
@@ -54,9 +74,36 @@ class BookingService
                 $this->syncStandardItems($booking, $data['items']);
             }
 
+            // Handle photos update if provided
+            if (isset($data['images']) && is_array($data['images'])) {
+                $existingPhotos = $booking->photos ?? [];
+                $newPhotos = [];
+                foreach ($data['images'] as $image) {
+                    // Check if it's already a path or a new file
+                    if (is_string($image)) {
+                        $newPhotos[] = $image;
+                    } else {
+                        $path = $image->store('bookings', 'public');
+                        $newPhotos[] = $path;
+                    }
+                }
+                $booking->update(['photos' => array_merge($existingPhotos, $newPhotos)]);
+            }
+
             $this->syncTransactionUpdates($booking, $data);
 
-            return $booking->refresh();
+            $booking->refresh();
+
+            // Notify customer if status changed
+            if ($oldStatus !== $booking->status) {
+                try {
+                    Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
+                } catch (\Exception $e) {
+                    \Illuminate\Support\Facades\Log::error('Failed to send status update email: ' . $e->getMessage());
+                }
+            }
+
+            return $booking;
         });
     }
 
@@ -83,6 +130,7 @@ class BookingService
             'payment_status' => 'pending',
             'source' => $source === 'admin' ? 'walk-in' : 'online',
             'booking_reference' => 'BK' . strtoupper(uniqid()),
+            'tag_number' => $data['tag_number'] ?? null,
         ];
 
         // Assign default branch 

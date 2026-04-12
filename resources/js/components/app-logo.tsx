@@ -10,8 +10,8 @@ export default function AppLogo() {
                 <span className="truncate font-bold">
                     Tarragon Manila
                 </span>
-                <span className="truncate text-[10px] text-gray-500 uppercase tracking-wider">
-                    Storage Rentals
+                <span className="truncate text-[11px] text-gray-600 uppercase tracking-wider">
+                    Luggage Storage
                 </span>
             </div>
         </>

@@ -32,6 +32,8 @@ class ReportController extends Controller
         return Inertia::render('reports/index', [
             'dailyTrend' => $data['dailyTrend'],
             'sourceDistribution' => $data['sourceDistribution'],
+            'summary' => $data['summary'],
+            'recentBookings' => $data['recentBookings'],
             'filters' => $request->only(['start_date', 'end_date'])
         ]);
     }

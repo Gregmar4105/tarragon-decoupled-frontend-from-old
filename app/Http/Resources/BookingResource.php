@@ -38,8 +38,9 @@ class BookingResource extends JsonResource
             'source' => ucfirst($this->source),
             'checkIn' => $this->drop_off_time ? Carbon::parse($this->drop_off_time)->format('Y-m-d h:i A') : null,
             'checkOut' => $this->pick_up_time ? Carbon::parse($this->pick_up_time)->format('Y-m-d h:i A') : null,
-            'tagNumber' => $this->status !== 'pending' ? 'TAG-' . substr($this->booking_reference, -4) : null,
-            'notes' => null,
+            'tagNumber' => $this->tag_number ?? ($this->status !== 'pending' ? 'TAG-' . substr($this->booking_reference, -4) : null),
+            'photos' => $this->photos ?? [],
+            'notes' => $this->notes,
         ];
     }
 }

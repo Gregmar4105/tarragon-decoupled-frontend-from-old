@@ -22,6 +22,8 @@ function CurrencyToggle() {
 }
 
 export default function Navbar() {
+    const { auth } = usePage().props as any;
+
     return (
         <nav className="flex items-center justify-between px-6 py-4 lg:px-12 bg-white">
             <div className="flex items-center gap-2">
@@ -52,25 +54,34 @@ export default function Navbar() {
                         </Button>
                     </BookingModal>
                 </div>
-                <Link href={login()}>
-                    <Button variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-transparent gap-2 px-2">
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            className="w-4 h-4"
-                        >
-                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-                            <polyline points="10 17 15 12 10 7" />
-                            <line x1="15" x2="3" y1="12" y2="12" />
-                        </svg>
-                        Login
-                    </Button>
-                </Link>
+                {auth?.user ? (
+                    <Link href="/dashboard">
+                        <Button variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-transparent gap-2 px-2">
+                            <User className="w-4 h-4 text-orange-600" />
+                            Dashboard
+                        </Button>
+                    </Link>
+                ) : (
+                    <Link href={login()}>
+                        <Button variant="ghost" className="text-gray-600 hover:text-gray-900 hover:bg-transparent gap-2 px-2">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                className="w-4 h-4"
+                            >
+                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                                <polyline points="10 17 15 12 10 7" />
+                                <line x1="15" x2="3" y1="12" y2="12" />
+                            </svg>
+                            Login
+                        </Button>
+                    </Link>
+                )}
             </div>
         </nav>
     );
