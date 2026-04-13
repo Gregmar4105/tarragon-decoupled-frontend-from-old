@@ -44,9 +44,9 @@ trait Auditable
      */
     protected static function audit($event, Model $model, $oldValues = null, $newValues = null)
     {
-        // Default to system user if running in console or without auth
+        // Default to system user if running in console, otherwise Guest
         $userId = null;
-        $userName = 'System';
+        $userName = app()->runningInConsole() ? 'System' : 'Guest';
         
         if (auth()->check()) {
             $userId = auth()->id();

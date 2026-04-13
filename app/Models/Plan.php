@@ -35,4 +35,8 @@ class Plan extends Model
         'price_large' => 'decimal:2',
         'price_plus' => 'decimal:2',
     ];
+    public function bookings()
+    {
+        return $this->hasMany(Booking::class);
+    }
 }

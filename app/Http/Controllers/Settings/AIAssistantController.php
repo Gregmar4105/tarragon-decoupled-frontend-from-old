@@ -12,12 +12,20 @@ use Inertia\Response;
 
 class AIAssistantController extends Controller
 {
+    private \App\Services\LLMService $llmService;
+
+    public function __construct(\App\Services\LLMService $llmService)
+    {
+        $this->llmService = $llmService;
+    }
+
     /**
      * Show the AI Assistant settings page.
      */
     public function edit(): Response
     {
         $settings = [
+            'ai_provider' => Setting::where('key', 'ai_provider')->value('value') ?? 'ollama',
             'ai_api_endpoint' => Setting::where('key', 'ai_api_endpoint')->value('value') ?? '',
             'ai_model' => Setting::where('key', 'ai_model')->value('value') ?? '',
             'ai_api_key' => Setting::where('key', 'ai_api_key')->value('value') ?? '',
@@ -35,6 +43,7 @@ class AIAssistantController extends Controller
     public function update(Request $request): RedirectResponse
     {
         $validated = $request->validate([
+            'ai_provider' => 'nullable|string|in:ollama,openai,gemini',
             'ai_api_endpoint' => 'nullable|url',
             'ai_model' => 'nullable|string|max:255',
             'ai_api_key' => 'nullable|string|max:255',
@@ -57,45 +66,19 @@ class AIAssistantController extends Controller
     public function testConnection(Request $request)
     {
         $validated = $request->validate([
+            'provider' => 'required|string|in:ollama,openai,gemini',
             'endpoint' => 'required|url',
             'api_key' => 'nullable|string',
         ]);
 
-        $endpoint = rtrim($validated['endpoint'], '/');
-        $apiKey = $validated['api_key'] ?? '';
-
         try {
-            $isOllama = str_contains($endpoint, '11434') || str_contains($endpoint, '/api/') || preg_match('/localhost|127\.0\.0\.1/', $endpoint);
+            $models = $this->llmService->fetchModels(
+                $validated['provider'],
+                $validated['endpoint'],
+                $validated['api_key'] ?? ''
+            );
 
-            if ($isOllama) {
-                $parsed = parse_url($endpoint);
-                $baseUrl = ($parsed['scheme'] ?? 'http') . '://' . ($parsed['host'] ?? 'localhost') . (!empty($parsed['port']) ? ':' . $parsed['port'] : '');
-                
-                $response = Http::timeout(5)->get($baseUrl . '/api/tags');
-                if ($response->successful()) {
-                    $models = collect($response->json('models', []))->pluck('name');
-                    return response()->json(['models' => $models]);
-                }
-                return response()->json(['error' => 'Failed to reach Ollama tags endpoint. Response code: ' . $response->status()], 400);
-            } else {
-                $parsed = parse_url($endpoint);
-                $baseUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
-                if (!empty($parsed['port'])) {
-                    $baseUrl .= ':' . $parsed['port'];
-                }
-
-                $headers = [];
-                if ($apiKey) {
-                    $headers['Authorization'] = 'Bearer ' . $apiKey;
-                }
-
-                $response = Http::withHeaders($headers)->timeout(5)->get($baseUrl . '/v1/models');
-                if ($response->successful()) {
-                    $models = collect($response->json('data', []))->pluck('id');
-                    return response()->json(['models' => $models]);
-                }
-                return response()->json(['error' => 'Failed to reach /v1/models endpoint. Status: ' . $response->status()], 400);
-            }
+            return response()->json(['models' => $models]);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Connection test failed: ' . $e->getMessage()], 400);
         }

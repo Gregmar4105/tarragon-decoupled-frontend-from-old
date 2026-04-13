@@ -110,7 +110,7 @@ export default function PlansIndex({ plans }: { plans: Plan[] }) {
     };
 
     const handleDelete = (id: number) => {
-        if (confirm('Are you sure you want to delete this plan?')) {
+        if (confirm('Are you sure you want to deactivate this plan? It will be hidden from the AI assistant and public booking forms.')) {
             destroy(`/plans/${id}`);
         }
     };

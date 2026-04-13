@@ -108,4 +108,8 @@ Route::post('reports/ai-analyze', [AnalyticsController::class, 'analyze'])
     ->middleware(['auth', 'verified'])
     ->name('reports.ai-analyze');
 
+Route::get('activity-logging', [\App\Http\Controllers\AuditTrailController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('activity-logging');
+
 require __DIR__.'/settings.php';

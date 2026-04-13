@@ -21,6 +21,7 @@ const breadcrumbs: BreadcrumbItem[] = [
 
 interface AIAssistantProps {
     settings: {
+        ai_provider: string;
         ai_api_endpoint: string;
         ai_model: string;
         ai_api_key: string;
@@ -35,6 +36,7 @@ export default function AIAssistant({ settings, status }: AIAssistantProps) {
     const [models, setModels] = useState<string[]>([]);
 
     const { data, setData, patch, processing, errors, recentlySuccessful } = useForm({
+        ai_provider: settings.ai_provider || 'ollama',
         ai_api_endpoint: settings.ai_api_endpoint || '',
         ai_model: settings.ai_model || '',
         ai_api_key: settings.ai_api_key || '',
@@ -52,6 +54,7 @@ export default function AIAssistant({ settings, status }: AIAssistantProps) {
 
         try {
             const response = await axios.post('/settings/ai-assistant/test', {
+                provider: data.ai_provider,
                 endpoint: data.ai_api_endpoint,
                 api_key: data.ai_api_key
             });
@@ -98,6 +101,21 @@ export default function AIAssistant({ settings, status }: AIAssistantProps) {
 
                     <form onSubmit={submit} className="space-y-6">
                         <div className="grid gap-2">
+                            <Label htmlFor="ai_provider">AI Provider</Label>
+                            <select
+                                id="ai_provider"
+                                className="mt-1 block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                value={data.ai_provider}
+                                onChange={(e) => setData('ai_provider', e.target.value)}
+                            >
+                                <option value="ollama">Ollama (Local)</option>
+                                <option value="openai">OpenAI Compatible (Mistral, Groq, etc.)</option>
+                                <option value="gemini">Google Gemini</option>
+                            </select>
+                            <InputError className="mt-2" message={errors.ai_provider} />
+                        </div>
+
+                        <div className="grid gap-2">
                             <Label htmlFor="ai_api_endpoint">AI Endpoint URL</Label>
 
                             <div className="flex items-center gap-2">
@@ -127,7 +145,9 @@ export default function AIAssistant({ settings, status }: AIAssistantProps) {
                                 </p>
                             )}
                             <p className="text-sm text-neutral-500">
-                                Typical local Ollama URL: http://127.0.0.1:11434/api/generate
+                                {data.ai_provider === 'ollama' && "Typical Ollama URL: http://127.0.0.1:11434"}
+                                {data.ai_provider === 'gemini' && "Gemini Base URL: https://generativelanguage.googleapis.com"}
+                                {data.ai_provider === 'openai' && "Example: https://api.openai.com or https://api.groq.com/openai"}
                             </p>
                         </div>
 

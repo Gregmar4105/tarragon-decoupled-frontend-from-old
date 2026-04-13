@@ -13,10 +13,12 @@ use Illuminate\Support\Facades\Http;
 class AnalyticsController extends Controller
 {
     private ReportRepository $repository;
+    private \App\Services\LLMService $llmService;
 
-    public function __construct(ReportRepository $repository)
+    public function __construct(ReportRepository $repository, \App\Services\LLMService $llmService)
     {
         $this->repository = $repository;
+        $this->llmService = $llmService;
     }
 
     /**
@@ -37,6 +39,7 @@ class AnalyticsController extends Controller
 
         // Load AI settings
         $settings = Setting::pluck('value', 'key');
+        $aiProvider = $settings['ai_provider'] ?? 'ollama';
         $aiEndpoint = rtrim($settings['ai_api_endpoint'] ?? '', '/');
         $aiModel = $settings['ai_model'] ?? '';
         $aiApiKey = $settings['ai_api_key'] ?? '';
@@ -56,17 +59,16 @@ class AnalyticsController extends Controller
         $userMessage = "Analyze the booking data provided in the system context. Provide a thorough analysis structured into the four sections: Descriptive, Diagnostic, Predictive, and Prescriptive. Be specific, reference actual numbers from the data, and provide actionable insights.";
 
         // Stream the AI response
-        return response()->stream(function () use ($aiEndpoint, $aiModel, $aiApiKey, $systemPrompt, $userMessage) {
+        return response()->stream(function () use ($aiProvider, $aiEndpoint, $aiModel, $aiApiKey, $systemPrompt, $userMessage) {
 
-            $isOllama = str_contains($aiEndpoint, '11434')
-                || str_contains($aiEndpoint, '/api/')
-                || preg_match('/localhost|127\.0\.0\.1/', $aiEndpoint);
-
-            if ($isOllama) {
-                $this->streamOllama($aiEndpoint, $aiModel, $systemPrompt, $userMessage);
-            } else {
-                $this->streamOpenAI($aiEndpoint, $aiModel, $aiApiKey, $systemPrompt, $userMessage);
-            }
+            $this->llmService->streamResponse(
+                $aiProvider,
+                $aiEndpoint,
+                $aiModel,
+                $aiApiKey,
+                [['role' => 'user', 'content' => $userMessage]],
+                $systemPrompt
+            );
 
             echo "data: [DONE]\n\n";
             ob_flush();
@@ -94,12 +96,12 @@ class AnalyticsController extends Controller
 
         // Current period stats
         $totalBookings = $bookings->count();
-        $totalRevenue = $bookings->sum('total_price');
+        $totalRevenue = $bookings->sum('total_price') * 58;
         $totalBags = $bookings->sum(fn($b) => $b->items->sum('quantity'));
 
         // Previous period stats
         $prevTotalBookings = $prevBookings->count();
-        $prevTotalRevenue = $prevBookings->sum('total_price');
+        $prevTotalRevenue = $prevBookings->sum('total_price') * 58;
         $prevTotalBags = $prevBookings->sum(fn($b) => $b->items->sum('quantity'));
 
         // Source distribution
@@ -128,7 +130,7 @@ class AnalyticsController extends Controller
                 'date' => $key,
                 'day' => $date->format('l'),
                 'bookings' => $dayBookings->count(),
-                'revenue' => round($dayBookings->sum('total_price'), 2),
+                'revenue' => round($dayBookings->sum('total_price') * 58, 2),
                 'bags' => $dayBookings->sum(fn($b) => $b->items->sum('quantity')),
             ];
         }
@@ -248,109 +250,5 @@ RULES:
 - Use bold for key metrics and percentages
 - If data is insufficient (e.g., zero bookings), note the limitation honestly
 PROMPT;
-    }
-
-    /**
-     * Stream response from Ollama.
-     */
-    private function streamOllama(string $endpoint, string $model, string $systemPrompt, string $userMessage): void
-    {
-        $parsed = parse_url($endpoint);
-        $baseUrl = ($parsed['scheme'] ?? 'http') . '://' . ($parsed['host'] ?? 'localhost') . (!empty($parsed['port']) ? ':' . $parsed['port'] : '');
-        $chatUrl = $baseUrl . '/api/chat';
-
-        try {
-            $response = Http::timeout(180)->withOptions(['stream' => true])->post($chatUrl, [
-                'model' => $model,
-                'messages' => [
-                    ['role' => 'system', 'content' => $systemPrompt],
-                    ['role' => 'user', 'content' => $userMessage],
-                ],
-                'stream' => true,
-            ]);
-
-            if ($response->successful()) {
-                $stream = $response->toPsrResponse()->getBody()->detach();
-                while (!feof($stream)) {
-                    $line = fgets($stream);
-                    if ($line === false || empty(trim($line))) continue;
-
-                    $data = json_decode($line, true);
-                    if ($data && isset($data['message']['content'])) {
-                        echo "data: " . json_encode(['text' => $data['message']['content']]) . "\n\n";
-                        ob_flush();
-                        flush();
-                    }
-                }
-            } else {
-                echo "data: " . json_encode(['text' => 'Failed to connect to AI model. Please check your AI Assistant settings.']) . "\n\n";
-                ob_flush();
-                flush();
-            }
-        } catch (\Exception $e) {
-            echo "data: " . json_encode(['text' => 'AI connection error: ' . $e->getMessage()]) . "\n\n";
-            ob_flush();
-            flush();
-        }
-    }
-
-    /**
-     * Stream response from OpenAI-compatible endpoint.
-     */
-    private function streamOpenAI(string $endpoint, string $model, string $apiKey, string $systemPrompt, string $userMessage): void
-    {
-        $parsed = parse_url($endpoint);
-        $baseUrl = ($parsed['scheme'] ?? 'https') . '://' . ($parsed['host'] ?? '');
-        if (!empty($parsed['port'])) {
-            $baseUrl .= ':' . $parsed['port'];
-        }
-        $chatUrl = rtrim($baseUrl, '/') . '/v1/chat/completions';
-
-        $headers = [];
-        if ($apiKey) {
-            $headers['Authorization'] = 'Bearer ' . $apiKey;
-        }
-
-        try {
-            $response = Http::withHeaders($headers)
-                ->timeout(180)
-                ->withOptions(['stream' => true])
-                ->post($chatUrl, [
-                    'model' => $model,
-                    'messages' => [
-                        ['role' => 'system', 'content' => $systemPrompt],
-                        ['role' => 'user', 'content' => $userMessage],
-                    ],
-                    'stream' => true,
-                ]);
-
-            if ($response->successful()) {
-                $stream = $response->toPsrResponse()->getBody()->detach();
-                while (!feof($stream)) {
-                    $line = fgets($stream);
-                    if ($line === false) continue;
-
-                    $line = trim($line);
-                    if (str_starts_with($line, 'data: ')) {
-                        $jsonStr = substr($line, 6);
-                        if ($jsonStr === '[DONE]') continue;
-                        $data = json_decode($jsonStr, true);
-                        if ($data && isset($data['choices'][0]['delta']['content'])) {
-                            echo "data: " . json_encode(['text' => $data['choices'][0]['delta']['content']]) . "\n\n";
-                            ob_flush();
-                            flush();
-                        }
-                    }
-                }
-            } else {
-                echo "data: " . json_encode(['text' => 'AI API connection failed. Check your endpoint and API key in Settings.']) . "\n\n";
-                ob_flush();
-                flush();
-            }
-        } catch (\Exception $e) {
-            echo "data: " . json_encode(['text' => 'AI Stream Error: ' . $e->getMessage()]) . "\n\n";
-            ob_flush();
-            flush();
-        }
     }
 }

@@ -2,6 +2,7 @@ import { Head, router } from '@inertiajs/react';
 import { format, subDays } from 'date-fns';
 import { Download, TrendingUp, Briefcase, Users, DollarSign, Calendar as CalendarIcon, Mail, Phone, ExternalLink } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import type { DateRange } from 'react-day-picker';
 import { AIInsightsPanel } from '@/components/AIInsightsPanel';
 import { DailyBookingsChart } from '@/components/DailyBookingsChart';
@@ -19,6 +20,7 @@ import {
 import AppLayout from '@/layouts/app-layout';
 import { cn } from '@/lib/utils';
 import { Sparkles } from 'lucide-react';
+import { useCurrency } from '@/context/CurrencyContext';
 
 interface Booking {
     id: number;
@@ -46,7 +48,11 @@ interface Props {
 }
 
 export default function Reports({ dailyTrend, sourceDistribution, summary, recentBookings }: Props) {
+    const { format: formatCurrency } = useCurrency();
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
+    
+    const AI_TEXTS = ["AI Insights", "Descriptive", "Diagnostic", "Predictive", "Prescriptive"];
+    const [textIndex, setTextIndex] = useState(0);
     
     const defaultFrom = searchParams.get('start_date') ? new Date(searchParams.get('start_date')!) : subDays(new Date(), 6);
     const defaultTo = searchParams.get('end_date') ? new Date(searchParams.get('end_date')!) : new Date();
@@ -68,17 +74,17 @@ export default function Reports({ dailyTrend, sourceDistribution, summary, recen
         });
     }, [dateRange]);
 
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTextIndex(prev => (prev + 1) % AI_TEXTS.length);
+        }, 2500);
+        return () => clearInterval(timer);
+    }, []);
+
     const getDateRangeDescription = () => {
         if (!dateRange?.from) return 'Select a date range';
         if (!dateRange?.to) return `From ${format(dateRange.from, 'LLL dd, y')}`;
         return `${format(dateRange.from, 'LLL dd, y')} - ${format(dateRange.to, 'LLL dd, y')}`;
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-PH', {
-            style: 'currency',
-            currency: 'PHP',
-        }).format(amount);
     };
 
     return (
@@ -110,9 +116,26 @@ export default function Reports({ dailyTrend, sourceDistribution, summary, recen
                         </Button>
                         <Sheet>
                             <SheetTrigger asChild>
-                                <Button className="w-full sm:w-auto gap-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white shadow-lg shadow-orange-500/20 px-5">
-                                    <Sparkles className="w-4 h-4" /> AI Insights
-                                </Button>
+                                <button className="relative group w-full sm:w-auto h-[38px] sm:min-w-[160px] rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 overflow-hidden shadow-lg shadow-orange-500/20 p-[2px]">
+                                    <div className="absolute inset-[-1000%] animate-[spin_4s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,#ea580c_0%,#facc15_50%,#ea580c_100%)] opacity-80 group-hover:opacity-100 transition duration-500"></div>
+                                    <div className="relative flex h-full w-full items-center justify-center gap-2 rounded-[4px] bg-background dark:bg-slate-950 px-4 py-1.5 text-sm font-semibold text-orange-600 dark:text-amber-400 group-hover:bg-slate-50 dark:group-hover:bg-slate-900 transition-colors">
+                                        <Sparkles className="w-4 h-4 shrink-0 animate-pulse duration-1000" />
+                                        <div className="overflow-hidden h-5 min-w-[90px] relative flex items-center">
+                                            <AnimatePresence mode="popLayout" initial={false}>
+                                                <motion.span
+                                                    key={textIndex}
+                                                    initial={{ opacity: 0, y: 15 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: -15 }}
+                                                    transition={{ duration: 0.3 }}
+                                                    className="absolute whitespace-nowrap text-left"
+                                                >
+                                                    {AI_TEXTS[textIndex]}
+                                                </motion.span>
+                                            </AnimatePresence>
+                                        </div>
+                                    </div>
+                                </button>
                             </SheetTrigger>
                             <SheetContent side="right" className="sm:max-w-2xl p-0 border-l border-border bg-card">
                                 <AIInsightsPanel dateRange={dateRange} />

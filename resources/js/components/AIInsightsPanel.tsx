@@ -436,16 +436,19 @@ export function AIInsightsPanel({ dateRange }: AIInsightsPanelProps) {
                         </div>
 
                         {/* Tab content */}
-                        <div className={cn("relative min-h-[200px] rounded-xl border border-border bg-gradient-to-b", activeTabConfig.bgGradient)}>
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={activeTab}
-                                    initial={{ opacity: 0, y: 8 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: -8 }}
-                                    transition={{ duration: 0.2 }}
-                                    className="p-5"
-                                >
+                        <div className={cn(
+                            "relative rounded-xl border border-border bg-gradient-to-b h-[calc(100vh-250px)]", 
+                            activeTabConfig.bgGradient
+                        )}>
+                            <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-5">
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={activeTab}
+                                        initial={{ opacity: 0, y: 8 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -8 }}
+                                        transition={{ duration: 0.2 }}
+                                    >
                                     {/* Section header */}
                                     <div className="flex items-center justify-between mb-4 pb-3 border-b border-border">
                                         <div className="flex items-center gap-2">
@@ -513,6 +516,7 @@ export function AIInsightsPanel({ dateRange }: AIInsightsPanelProps) {
                                     )}
                                 </motion.div>
                             </AnimatePresence>
+                            </div>
                         </div>
                     </div>
                 )}

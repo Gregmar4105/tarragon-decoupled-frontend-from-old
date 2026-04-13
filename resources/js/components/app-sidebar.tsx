@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, LayoutDashboard, Calendar, CreditCard, BarChart3, PlusCircle, Tag } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, LayoutDashboard, Calendar, CreditCard, BarChart3, PlusCircle, Tag, History } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -45,6 +45,11 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
+    {
+        title: 'Activity Logs',
+        href: '/activity-logging',
+        icon: History,
+    },
 ];
 
 export function AppSidebar() {

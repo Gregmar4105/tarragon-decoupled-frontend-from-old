@@ -204,7 +204,7 @@
                 <div class="details-row">
                     <span class="details-label">Total</span>
                     <span class="details-value"
-                        style="color: #f97316; font-weight: 700; font-size: 18px;">₱{{ number_format($booking->total_price, 2) }}</span>
+                        style="color: #f97316; font-weight: 700; font-size: 18px;">₱{{ number_format($booking->total_price * 58, 2) }}</span>
                 </div>
             </div>
 

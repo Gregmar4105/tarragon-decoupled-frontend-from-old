@@ -38,8 +38,7 @@ export default function BookingShow({ booking }: { booking: any }) {
                         <p className="text-muted-foreground text-sm">View complete information for this booking.</p>
                     </div>
                     <div className="ml-auto flex gap-2">
-                        <Button variant="outline" onClick={() => setIsEditModalOpen(true)}>Edit Booking</Button>
-                        <Button variant="destructive">Delete</Button>
+                        <Button className="bg-orange-500 hover:bg-orange-600" variant="default" onClick={() => setIsEditModalOpen(true)}>Edit Booking</Button>
                     </div>
                 </div>
 
@@ -127,9 +126,9 @@ export default function BookingShow({ booking }: { booking: any }) {
                                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                                         {booking.photos.map((photo: string, index: number) => (
                                             <div key={index} className="aspect-square rounded-xl overflow-hidden border border-gray-200 shadow-sm">
-                                                <img 
-                                                    src={`/storage/${photo}`} 
-                                                    alt={`Bag Photo ${index + 1}`} 
+                                                <img
+                                                    src={`/storage/${photo}`}
+                                                    alt={`Bag Photo ${index + 1}`}
                                                     className="w-full h-full object-cover transition-transform hover:scale-105 cursor-pointer"
                                                     onClick={() => window.open(`/storage/${photo}`, '_blank')}
                                                 />

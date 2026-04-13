@@ -79,8 +79,11 @@ class PlanController extends Controller
 
     public function destroy(Plan $plan)
     {
-        $this->service->deletePlan($plan);
-
-        return back()->with('success', 'Plan deleted successfully.');
+        try {
+            $this->service->deletePlan($plan);
+            return back()->with('success', 'Plan deactivated successfully.');
+        } catch (\Exception $e) {
+            return back()->with('error', 'Failed to deactivate plan: ' . $e->getMessage());
+        }
     }
 }

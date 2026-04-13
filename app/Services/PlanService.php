@@ -23,10 +23,10 @@ class PlanService
     }
 
     /**
-     * Delete a pricing plan.
+     * Deactivate a pricing plan.
      */
-    public function deletePlan(Plan $plan): ?bool
+    public function deletePlan(Plan $plan): bool
     {
-        return $plan->delete();
+        return $plan->update(['is_active' => false]);
     }
 }
