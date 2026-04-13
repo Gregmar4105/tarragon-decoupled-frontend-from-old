@@ -1,5 +1,5 @@
 import { Html5Qrcode } from 'html5-qrcode';
-import { CheckCircle, AlertCircle, ScanLine, X, RefreshCw } from 'lucide-react';
+import { CheckCircle, AlertCircle, ScanLine, X, RefreshCw, Camera as CameraIcon } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { StatusBadge } from '@/components/status-badge';
 import { Button } from '@/components/ui/button';
@@ -288,7 +288,7 @@ export default function BookingScanner({ isOpen, onClose, bookings, onCheckIn }:
                                             onClick={() => setIsCameraOpen(true)}
                                             className="gap-2"
                                         >
-                                            <Camera className="h-4 w-4" />
+                                            <CameraIcon className="h-4 w-4" />
                                             Capture Photo
                                         </Button>
                                     </div>

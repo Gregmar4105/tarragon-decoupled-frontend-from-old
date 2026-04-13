@@ -55,7 +55,7 @@ class EmailSettingsController extends Controller
             );
         }
 
-        return redirect()->route('settings.email.edit')->with('status', 'settings-updated');
+        return redirect()->route('email.edit')->with('status', 'settings-updated');
     }
 
     /**

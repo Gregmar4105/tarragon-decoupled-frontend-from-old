@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Camera, X, RefreshCw, Check, Undo2 } from 'lucide-react';
+import { Camera as CameraIcon, X, RefreshCw, Check, Undo2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 
@@ -109,7 +109,7 @@ export default function CameraModal({ isOpen, onClose, onPhotosCaptured }: Camer
             <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden bg-black text-white border-none">
                 <DialogHeader className="p-4 bg-gray-900 border-b border-gray-800">
                     <DialogTitle className="flex items-center gap-2 text-white">
-                        <Camera className="h-5 w-5 text-orange-500" />
+                        <CameraIcon className="h-5 w-5 text-orange-500" />
                         Live Bag Photo
                     </DialogTitle>
                     <DialogDescription className="text-gray-400">

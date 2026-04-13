@@ -2,7 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { Minus, Plus, Calendar, ArrowRight, ArrowLeft, CheckCircle, Package, User, ShieldCheck } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCurrency } from "@/context/CurrencyContext";
@@ -123,6 +123,9 @@ export default function BookingModal({ children, source = 'online' }: { children
                     <DialogTitle className="text-lg md:text-xl font-bold tracking-tight text-gray-900">
                         {step === 1 ? "Select Dates" : step === 2 ? "Add Bags" : "Customer Details"}
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Step {step} of 3: {step === 1 ? "Select Dates" : step === 2 ? "Add Bags" : "Enter Customer Details"}
+                    </DialogDescription>
                     <div className="flex items-center gap-2 mr-2 md:mr-8">
                         <div className={`h-2 w-2 rounded-full ${step >= 1 ? 'bg-orange-500' : 'bg-gray-200'}`} />
                         <div className={`h-1 w-4 md:w-8 rounded-full ${step >= 2 ? 'bg-orange-500' : 'bg-gray-100'}`} />
