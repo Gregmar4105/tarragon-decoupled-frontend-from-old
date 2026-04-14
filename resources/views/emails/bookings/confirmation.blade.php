@@ -212,7 +212,7 @@
             <div class="pass-card">
                 <h2>{{ $booking->status === 'checked-in' ? 'CHECK-OUT PASS' : 'CHECK-IN PASS' }}</h2>
                 <div class="qr-wrapper">
-                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ $booking->booking_reference }}"
+                    <img src="data:image/svg+xml;base64,{{ $qrCodeBase64 }}"
                         width="180" height="180" alt="QR Code">
                 </div>
                 <div class="booking-ref">{{ $booking->booking_reference }}</div>

@@ -28,7 +28,7 @@ const mainNavItems: NavItem[] = [
         icon: Calendar,
     },
     {
-        title: 'Transactions & Export',
+        title: 'Payment Transactions',
         href: '/transactions',
         icon: CreditCard,
     },

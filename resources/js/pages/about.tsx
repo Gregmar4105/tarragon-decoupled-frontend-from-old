@@ -87,24 +87,6 @@ export default function About() {
                         </div>
                     </div>
 
-                    {/* Team Section Placeholder */}
-                    <div className="py-24 bg-gray-50 border-t border-gray-100">
-                        <div className="max-w-7xl mx-auto px-6 lg:px-12 text-center">
-                            <h2 className="text-3xl font-bold text-gray-900 mb-12">Meet the Team</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {[1, 2, 3].map((i) => (
-                                    <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center">
-                                        <div className="w-24 h-24 bg-gray-200 rounded-full mb-4 flex items-center justify-center text-gray-400">
-                                            <Users className="w-10 h-10" />
-                                        </div>
-                                        <h3 className="font-bold text-lg text-gray-900">Team Member {i}</h3>
-                                        <p className="text-sm text-gray-500">Co-Founder</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-
                     {/* CTA */}
                     <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white py-20 text-center">
                         <div className="max-w-3xl mx-auto px-6">

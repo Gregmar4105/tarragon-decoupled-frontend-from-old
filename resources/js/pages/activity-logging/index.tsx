@@ -14,9 +14,10 @@ import {
     Clock,
     UserPlus,
     Zap,
-    Download
+    Download,
+    Globe
 } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ interface AuditTrail {
     auditable_id: number;
     event: string;
     activity: string;
+    ip_address: string | null;
     old_values: any;
     new_values: any;
     created_at: string;
@@ -97,14 +99,20 @@ export default function ActivityLogging({ auditTrails, filters, summary }: Props
     const [search, setSearch] = useState(filters.search || '');
     const [eventFilter, setEventFilter] = useState(filters.event || 'all');
     const [expandedRows, setExpandedRows] = useState<number[]>([]);
-
     const toggleRow = (id: number) => {
         setExpandedRows(prev => 
             prev.includes(id) ? prev.filter(rowId => rowId !== id) : [...prev, id]
         );
     };
 
+    const isFirstRender = useRef(true);
+
     useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
         const delayDebounceFn = setTimeout(() => {
             const query: any = {};
             if (search) query.search = search;
@@ -253,17 +261,18 @@ export default function ActivityLogging({ auditTrails, filters, summary }: Props
                             <Table>
                                 <TableHeader>
     <TableRow className="bg-muted/50">
-        {/* Keep the chevron column small */}
+        {/* Chevron column */}
         <TableHead className="w-[48px]"></TableHead>
         
-        {/* Apply equal width (14%) to the 7 data columns */}
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</TableHead>
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Time</TableHead>
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">User</TableHead>
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Activity Summary</TableHead>
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Action</TableHead>
-        <TableHead className="w-[14%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Models</TableHead>
-        <TableHead className="w-[14%] text-right text-xs font-bold uppercase tracking-wider text-muted-foreground pr-8">Target Model ID</TableHead>
+        {/* Separated Date and Time columns */}
+        <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Date</TableHead>
+        <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Time</TableHead>
+        <TableHead className="w-[12%] text-xs font-bold uppercase tracking-wider text-muted-foreground">User</TableHead>
+        <TableHead className="w-[12%] text-xs font-bold uppercase tracking-wider text-muted-foreground">IP Address</TableHead>
+        <TableHead className="w-[18%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Activity Summary</TableHead>
+        <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Action</TableHead>
+        <TableHead className="w-[10%] text-xs font-bold uppercase tracking-wider text-muted-foreground">Models</TableHead>
+        <TableHead className="w-[8%] text-right text-xs font-bold uppercase tracking-wider text-muted-foreground pr-8">Target ID</TableHead>
     </TableRow>
 </TableHeader>
 <TableBody>
@@ -285,14 +294,12 @@ export default function ActivityLogging({ auditTrails, filters, summary }: Props
                         )}
                     </TableCell>
                     
-                    {/* Removed w-[140px] */}
                     <TableCell>
-                        <span className="text-sm font-medium">{format(new Date(log.created_at), 'MMM dd, yyyy')}</span>
+                        <span className="text-sm font-medium whitespace-nowrap">{format(new Date(log.created_at), 'MMM dd, yyyy')}</span>
                     </TableCell>
                     
-                    {/* Removed w-[100px] */}
                     <TableCell>
-                        <span className="text-sm font-mono bg-muted/30 px-2 py-0.5">
+                        <span className="text-sm font-mono bg-muted/30 px-2 py-0.5 rounded">
                             {format(new Date(log.created_at), 'HH:mm:ss')}
                         </span>
                     </TableCell>
@@ -302,8 +309,14 @@ export default function ActivityLogging({ auditTrails, filters, summary }: Props
                             {log.user_name}
                         </span>
                     </TableCell>
+
+                    <TableCell>
+                        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
+                            <Globe className="w-3 h-3 text-blue-400" />
+                            {log.ip_address || 'Unrecorded'}
+                        </div>
+                    </TableCell>
                     
-                    {/* Removed max-w-[350px] */}
                     <TableCell>
                         <div className="text-sm font-medium text-zinc-800 dark:text-zinc-200 truncate">
                             {log.activity}
@@ -325,8 +338,8 @@ export default function ActivityLogging({ auditTrails, filters, summary }: Props
                     </TableCell>
                 </TableRow>
                                                 {expandedRows.includes(log.id) && (
-                                                    <TableRow className="bg-orange-50/10 dark:bg-zinc-900/30">
-                                                        <TableCell colSpan={8} className="p-6">
+                                                    <TableRow className="bg-orange-50/10 dark:bg-zinc-900/30 font-extrabold">
+                                                        <TableCell colSpan={9} className="p-6">
                                                             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-in fade-in zoom-in-95 duration-300">
                                                                 <div className="space-y-3">
                                                                     <div className="flex items-center justify-between border-b pb-2">

@@ -18,6 +18,7 @@ class AuditTrail extends Model
         'auditable_id',
         'event',
         'activity',
+        'ip_address',
         'old_values',
         'new_values',
         'created_at',

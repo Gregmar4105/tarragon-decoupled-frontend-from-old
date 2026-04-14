@@ -64,6 +64,7 @@ trait Auditable
             'auditable_id' => $model->getKey(),
             'event' => $event,
             'activity' => $activity,
+            'ip_address' => request()->ip() ?: (request()->server('REMOTE_ADDR') ?: '127.0.0.1'),
             'old_values' => $oldValues,
             'new_values' => $newValues,
             'created_at' => now(),

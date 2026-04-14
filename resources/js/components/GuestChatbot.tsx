@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { MessageCircle, X, Send, Bot, Loader2, ImagePlus, RefreshCw, Download } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
+import QRCode from "react-qr-code";
 import { Button } from '@/components/ui/button';
 
 type Message = {
@@ -148,29 +149,41 @@ export default function GuestChatbot() {
         ctx.fill();
 
         // Load QR Code
-        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${ref}`;
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.src = qrUrl;
+        try {
+            const svgElement = document.getElementById(`qr-code-${ref}`);
+            if (!svgElement) {
+                console.error("QR Code SVG not found");
+                return;
+            }
+            const svgData = new XMLSerializer().serializeToString(svgElement);
+            const svgBlob = new Blob([svgData], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(svgBlob);
+            
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, (canvas.width - 250) / 2, 160, 250, 250);
 
-        img.onload = () => {
-            ctx.drawImage(img, (canvas.width - 250) / 2, 160, 250, 250);
+                // Ref text
+                ctx.fillStyle = '#1f2937'; // gray-800
+                ctx.font = 'bold 24px monospace';
+                ctx.fillText(ref, canvas.width / 2, 450);
 
-            // Ref text
-            ctx.fillStyle = '#1f2937'; // gray-800
-            ctx.font = 'bold 24px monospace';
-            ctx.fillText(ref, canvas.width / 2, 450);
+                ctx.fillStyle = '#9ca3af'; // gray-400
+                ctx.font = '14px sans-serif';
+                ctx.fillText('PRESENT THIS QR AT CHECK-IN', canvas.width / 2, 485);
 
-            ctx.fillStyle = '#9ca3af'; // gray-400
-            ctx.font = '14px sans-serif';
-            ctx.fillText('PRESENT THIS QR AT CHECK-IN', canvas.width / 2, 485);
-
-            // Trigger Download
-            const link = document.createElement('a');
-            link.download = `Tarragon-Booking-${ref}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        };
+                // Trigger Download
+                const link = document.createElement('a');
+                link.download = `Tarragon-Booking-${ref}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        } catch (e) {
+            console.error("Failed to generate download pass", e);
+        }
     };
 
     const handleSend = async (text: string = inputValue) => {
@@ -363,11 +376,14 @@ export default function GuestChatbot() {
                                             {msg.text}
                                             {msg.isBookingSuccess && msg.bookingRef && (
                                                 <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100 flex flex-col items-center">
-                                                    <img 
-                                                        src={`https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${msg.bookingRef}`} 
-                                                        alt="Booking QR Code"
-                                                        className="w-32 h-32 mb-2"
-                                                    />
+                                                    <div className="w-32 h-32 mb-2 bg-white flex items-center justify-center rounded-lg border border-gray-200">
+                                                        <QRCode 
+                                                            id={`qr-code-${msg.bookingRef}`}
+                                                            value={msg.bookingRef}
+                                                            size={112}
+                                                            style={{ height: "auto", maxWidth: "100%", width: "100%" }}
+                                                        />
+                                                    </div>
                                                     <span className="text-[10px] font-mono text-gray-400 bg-white px-2 py-0.5 rounded border border-gray-100">
                                                         {msg.bookingRef}
                                                     </span>

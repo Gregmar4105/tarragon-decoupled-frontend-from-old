@@ -13,9 +13,9 @@ import {
     ArrowRight
 } from 'lucide-react';
 import { useState } from 'react';
-import BaggageScanner from '@/components/BaggageScanner';
-import BookingModal from '@/components/BookingModal';
 import Footer from '@/components/Footer';
+import VanRental from '@/components/VanRental';
+import BookingModal from '@/components/BookingModal';
 import LocationCard from '@/components/LocationCard';
 import Navbar from '@/components/Navbar';
 import ParticleBackground from '@/components/ParticleBackground';
@@ -166,8 +166,8 @@ export default function Welcome() {
                         </div>
                     </div>
 
-                    {/* Baggage Scanner */}
-                    <BaggageScanner />
+                    {/* Van Rental Service */}
+                    <VanRental />
 
                     {/* How It Works */}
                     <div className="py-16 md:py-24 bg-white relative">

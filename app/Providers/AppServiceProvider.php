@@ -37,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
                 'auditable_id' => $event->user->id,
                 'event' => 'login',
                 'activity' => 'User Logged In',
+                'ip_address' => request()->ip() ?: (request()->server('REMOTE_ADDR') ?: '127.0.0.1'),
                 'created_at' => now(),
             ]);
         });
@@ -50,6 +51,7 @@ class AppServiceProvider extends ServiceProvider
                     'auditable_id' => $event->user->id,
                     'event' => 'logout',
                     'activity' => 'User Logged Out',
+                    'ip_address' => request()->ip() ?: (request()->server('REMOTE_ADDR') ?: '127.0.0.1'),
                     'created_at' => now(),
                 ]);
             }

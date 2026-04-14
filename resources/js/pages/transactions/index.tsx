@@ -57,9 +57,9 @@ interface Props {
 
 export default function Transactions({ initialTransactions, stats }: Props) {
     const { format: formatCurrency } = useCurrency();
-    
+
     const searchParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams();
-    
+
     // Parse initial dates from URL or default
     const defaultFrom = searchParams.get('start_date') ? new Date(searchParams.get('start_date')!) : subDays(new Date(), 30);
     const defaultTo = searchParams.get('end_date') ? new Date(searchParams.get('end_date')!) : new Date();
@@ -100,9 +100,9 @@ export default function Transactions({ initialTransactions, stats }: Props) {
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Transactions & Export" />
+            <Head title="Payment Transactions" />
             <div className="flex flex-1 flex-col gap-6 p-4 md:p-6">
-                <h1 className="text-2xl font-bold tracking-tight">Transactions & Export</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Payment Transactions</h1>
 
                 {/* Filters */}
                 <Card>
@@ -142,7 +142,7 @@ export default function Transactions({ initialTransactions, stats }: Props) {
                             </Select>
                         </div>
 
-                        <Button 
+                        <Button
                             className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white gap-2 shadow-sm"
                             onClick={() => {
                                 const query = new URLSearchParams(window.location.search);
