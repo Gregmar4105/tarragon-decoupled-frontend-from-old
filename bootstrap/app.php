@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'reports/ai-analyze',
+            'api/native/*',
+            'native/*',
         ]);
 
         $middleware->web(append: [

@@ -7,10 +7,21 @@ return new class extends Migration
 {
     /**
      * Run the migrations.
+     *
+     * MySQL triggers use SIGNAL SQLSTATE which is not supported by SQLite
+     * (used by NativePHP Android). We skip trigger creation on SQLite entirely —
+     * the audit_trails table is still append-only by application convention.
      */
     public function up(): void
     {
-        // Add a trigger to prevent deleting any rows from the audit_trails table
+        $driver = DB::getDriverName();
+
+        // SQLite does not support SIGNAL SQLSTATE — skip triggers entirely
+        if ($driver === 'sqlite') {
+            return;
+        }
+
+        // MySQL: add triggers to prevent deletion and mutation of audit records
         DB::unprepared('
             CREATE TRIGGER prevent_audit_trails_deletion
             BEFORE DELETE ON audit_trails
@@ -20,7 +31,6 @@ return new class extends Migration
             END
         ');
 
-        // Add a trigger to prevent updating any rows in the audit_trails table
         DB::unprepared('
             CREATE TRIGGER prevent_audit_trails_update
             BEFORE UPDATE ON audit_trails
@@ -36,6 +46,12 @@ return new class extends Migration
      */
     public function down(): void
     {
+        $driver = DB::getDriverName();
+
+        if ($driver === 'sqlite') {
+            return;
+        }
+
         DB::unprepared('DROP TRIGGER IF EXISTS prevent_audit_trails_deletion');
         DB::unprepared('DROP TRIGGER IF EXISTS prevent_audit_trails_update');
     }

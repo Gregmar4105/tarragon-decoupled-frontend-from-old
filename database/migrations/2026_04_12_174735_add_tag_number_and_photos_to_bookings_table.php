@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->string('tag_number')->nullable()->after('payment_status');
-            $table->json('photos')->nullable()->after('tag_number');
+            $table->string('tag_number')->nullable();
+            $table->json('photos')->nullable();
         });
     }
 

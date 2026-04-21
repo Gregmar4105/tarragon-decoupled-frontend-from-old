@@ -9,3 +9,4 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/chat', [\App\Http\Controllers\Api\ChatController::class, 'sendMessage']);
 Route::post('/bookings', [\App\Http\Controllers\Api\BookingApiController::class, 'store']);
+

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "799116666372",
+    "project_id": "tarragon-nativephp",
+    "storage_bucket": "tarragon-nativephp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:799116666372:android:78982448f829d3e0217751",
+        "android_client_info": {
+          "package_name": "tarragon.larable.dev"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPjwCa6Inx_x_XybFB_0rghn-sLZmdXCY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

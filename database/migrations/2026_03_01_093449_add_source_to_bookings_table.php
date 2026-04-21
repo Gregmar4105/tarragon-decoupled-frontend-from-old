@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('bookings', function (Blueprint $table) {
-            $table->enum('source', ['online', 'walk-in'])->default('online')->after('status');
+            $table->enum('source', ['online', 'walk-in'])->default('online');
         });
     }
 

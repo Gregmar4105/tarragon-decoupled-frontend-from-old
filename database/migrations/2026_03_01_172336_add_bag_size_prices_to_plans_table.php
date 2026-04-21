@@ -12,10 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('plans', function (Blueprint $table) {
-            $table->decimal('price_small', 8, 2)->default(0)->after('price');
-            $table->decimal('price_medium', 8, 2)->default(0)->after('price_small');
-            $table->decimal('price_large', 8, 2)->default(0)->after('price_medium');
-            $table->decimal('price_plus', 8, 2)->default(0)->after('price_large');
+            $table->decimal('price_small', 8, 2)->default(0);
+            $table->decimal('price_medium', 8, 2)->default(0);
+            $table->decimal('price_large', 8, 2)->default(0);
+            $table->decimal('price_plus', 8, 2)->default(0);
         });
     }
 

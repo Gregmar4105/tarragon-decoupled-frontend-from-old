@@ -300,6 +300,8 @@ return [
 
     'permissions' => [
         'camera' => 'ANDREI I-ON MO NGANI ANG CAMERA.',
+        'biometrics' => true,
+        'notifications' => true,
     ],
 
     /*

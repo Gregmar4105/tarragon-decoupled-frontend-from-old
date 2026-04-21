@@ -87,11 +87,19 @@ class DashboardRepository
 
     public function getMonthlyRevenueForYear(int $year): \Illuminate\Support\Collection
     {
+        $driver = \Illuminate\Support\Facades\DB::getDriverName();
+        $monthExpression = $driver === 'sqlite' ? "strftime('%m', updated_at)" : "MONTH(updated_at)";
+
         return Booking::whereYear('updated_at', $year)
             ->where('payment_status', 'paid')
-            ->selectRaw('MONTH(updated_at) as month, SUM(total_price) as total')
+            ->selectRaw("{$monthExpression} as month, SUM(total_price) as total")
             ->groupBy('month')
-            ->pluck('total', 'month');
+            ->get()
+            ->pluck('total', 'month')
+            ->mapWithKeys(function ($item, $key) {
+                // Ensure month is an integer and remove leading zeros for consistency
+                return [(int)$key => (float)$item];
+            });
     }
 
     public function getSalesCountForCurrentMonth(): int

@@ -1,5 +1,7 @@
 import { Transition } from '@headlessui/react';
 import { Form, Head, Link, usePage } from '@inertiajs/react';
+import { Bell, Fingerprint, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import DeleteUser from '@/components/delete-user';
 import Heading from '@/components/heading';
@@ -20,6 +22,22 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
+/**
+ * Get the CSRF token from the meta tag or cookie.
+ * Required for POST requests to web routes.
+ */
+function getCsrfToken(): string {
+    // Try meta tag first (set by Inertia/Blade)
+    const metaTag = document.querySelector('meta[name="csrf-token"]');
+    if (metaTag) return metaTag.getAttribute('content') || '';
+
+    // Fallback: read from XSRF-TOKEN cookie (Laravel encrypts this but accepts X-XSRF-TOKEN header)
+    const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+    if (match) return decodeURIComponent(match[1]);
+
+    return '';
+}
+
 export default function Profile({
     mustVerifyEmail,
     status,
@@ -28,6 +46,127 @@ export default function Profile({
     status?: string;
 }) {
     const { auth } = usePage<SharedData>().props;
+
+    // ─────────────────────────────────────────
+    //  Mobile settings state
+    // ─────────────────────────────────────────
+    const [biometricEnabled, setBiometricEnabled] = useState(false);
+    const [biometricLoading, setBiometricLoading] = useState(false);
+    const [notifsEnabled, setNotifsEnabled] = useState(!!auth.user.fcm_token);
+    const [notifLoading, setNotifLoading] = useState(false);
+    const [mobileMessage, setMobileMessage] = useState<{ text: string; success: boolean } | null>(null);
+
+    // Check biometric status on mount
+    useEffect(() => {
+        fetch('/native/check-biometrics')
+            .then(res => res.json())
+            .then(data => setBiometricEnabled(data.available))
+            .catch(() => { /* Not in native context */ });
+    }, []);
+
+    // Listen for asynchronous native events (like push token generation)
+    useEffect(() => {
+        const handleNativeEvent = (e: any) => {
+            const eventName = e.detail?.event || '';
+            if (eventName.includes('TokenGenerated')) {
+                setNotifsEnabled(true);
+                setMobileMessage({ text: 'Push notifications successfully activated!', success: true });
+                setNotifLoading(false);
+            }
+        };
+        document.addEventListener('native-event', handleNativeEvent);
+        return () => document.removeEventListener('native-event', handleNativeEvent);
+    }, []);
+
+    // Auto-dismiss mobile messages
+    useEffect(() => {
+        if (mobileMessage) {
+            const timer = setTimeout(() => setMobileMessage(null), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [mobileMessage]);
+
+    const handleEnrollNotifications = async () => {
+        setNotifLoading(true);
+        try {
+            const res = await fetch('/native/enroll-notifications', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+            const data = await res.json();
+            if (res.ok) {
+                setMobileMessage({ text: data.message || 'Notifications enrolled!', success: true });
+                // We keep notifLoading = true until the native-event fires
+            } else {
+                setMobileMessage({ text: data.message || 'Failed to enroll.', success: false });
+                setNotifLoading(false);
+            }
+        } catch {
+            setMobileMessage({ text: 'Failed to enroll notifications.', success: false });
+            setNotifLoading(false);
+        }
+    };
+
+    const handleSetupBiometrics = async () => {
+        const password = prompt('Confirm your password to enable fingerprint login:');
+        if (!password) return;
+
+        setBiometricLoading(true);
+        try {
+            const res = await fetch('/native/setup-biometrics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+                body: JSON.stringify({ password }),
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setMobileMessage({ text: data.message, success: true });
+                setBiometricEnabled(true);
+            } else {
+                setMobileMessage({ text: data.message || 'Biometric setup failed.', success: false });
+            }
+        } catch {
+            setMobileMessage({ text: 'Failed to setup biometrics.', success: false });
+        } finally {
+            setBiometricLoading(false);
+        }
+    };
+
+    const handleDisableBiometrics = async () => {
+        setBiometricLoading(true);
+        try {
+            const res = await fetch('/native/disable-biometrics', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                },
+                credentials: 'same-origin',
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                setMobileMessage({ text: data.message, success: true });
+                setBiometricEnabled(false);
+            } else {
+                setMobileMessage({ text: data.message || 'Failed to disable biometrics.', success: false });
+            }
+        } catch {
+            setMobileMessage({ text: 'Failed to disable biometrics.', success: false });
+        } finally {
+            setBiometricLoading(false);
+        }
+    };
 
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
@@ -141,6 +280,97 @@ export default function Profile({
                             </>
                         )}
                     </Form>
+
+                    {/* ──────────────────────────────────── */}
+                    {/*  Mobile App Settings                */}
+                    {/* ──────────────────────────────────── */}
+                    <div className="pt-6 border-t">
+                        <Heading
+                            variant="small"
+                            title="Mobile App Settings"
+                            description="Configure native mobile features for this device"
+                        />
+
+                        {/* Status message */}
+                        {mobileMessage && (
+                            <div className={`mt-4 flex items-center gap-2 p-3 rounded-lg text-sm font-medium ${
+                                mobileMessage.success
+                                    ? 'bg-green-50 text-green-700 border border-green-200'
+                                    : 'bg-red-50 text-red-700 border border-red-200'
+                            }`}>
+                                {mobileMessage.success
+                                    ? <CheckCircle2 className="h-4 w-4 shrink-0" />
+                                    : <XCircle className="h-4 w-4 shrink-0" />
+                                }
+                                {mobileMessage.text}
+                            </div>
+                        )}
+
+                        <div className="mt-4 space-y-4">
+                            {/* Push Notifications */}
+                            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-full ${notifsEnabled ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                                        <Bell className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Push Notifications</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {notifsEnabled 
+                                                ? 'Push notifications are active on this device' 
+                                                : 'Receive updates about your bookings'}
+                                        </p>
+                                    </div>
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    disabled={notifLoading || notifsEnabled}
+                                    onClick={handleEnrollNotifications}
+                                    className={notifsEnabled ? 'text-green-600 border-green-200 bg-green-50' : ''}
+                                >
+                                    {notifLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                    {notifsEnabled ? 'Enabled' : 'Enable'}
+                                </Button>
+                            </div>
+
+                            {/* Biometric Login */}
+                            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-full ${biometricEnabled ? 'bg-green-100 text-green-600' : 'bg-primary/10 text-primary'}`}>
+                                        <Fingerprint className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium">Fingerprint Login</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {biometricEnabled
+                                                ? 'Fingerprint login is active on this device'
+                                                : 'Login quickly using your fingerprint'}
+                                        </p>
+                                    </div>
+                                </div>
+                                {biometricEnabled ? (
+                                    <Button
+                                        variant="outline"
+                                        disabled={biometricLoading}
+                                        onClick={handleDisableBiometrics}
+                                        className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                    >
+                                        {biometricLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Disable
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="outline"
+                                        disabled={biometricLoading}
+                                        onClick={handleSetupBiometrics}
+                                    >
+                                        {biometricLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                        Setup
+                                    </Button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <DeleteUser />

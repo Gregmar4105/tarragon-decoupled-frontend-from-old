@@ -13,15 +13,15 @@ return new class extends Migration
     {
         if (!Schema::hasColumn('plans', 'subtitle')) {
             Schema::table('plans', function (Blueprint $table) {
-                $table->string('subtitle')->nullable()->after('name');
+                $table->string('subtitle')->nullable();
             });
         }
         
         if (!Schema::hasColumn('plans', 'features')) {
             Schema::table('plans', function (Blueprint $table) {
-                $table->json('features')->nullable()->after('price');
-                $table->string('billing_cycle')->default('hourly')->after('features');
-                $table->boolean('is_popular')->default(false)->after('billing_cycle');
+                $table->json('features')->nullable();
+                $table->string('billing_cycle')->default('hourly');
+                $table->boolean('is_popular')->default(false);
             });
         }
     }

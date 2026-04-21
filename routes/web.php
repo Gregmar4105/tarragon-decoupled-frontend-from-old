@@ -112,4 +112,32 @@ Route::get('activity-logging', [\App\Http\Controllers\AuditTrailController::clas
     ->middleware(['auth', 'verified'])
     ->name('activity-logging');
 
+// ─────────────────────────────────────────────
+//  NativePHP Mobile — Unauthenticated endpoints
+//  (Used on the login screen before user is logged in)
+//  These MUST be in web routes so the Session is started 
+//  and Auth::attempt() can persist the login state.
+// ─────────────────────────────────────────────
+Route::prefix('native')->group(function () {
+    Route::get('/check-biometrics', [\App\Http\Controllers\Api\NativeController::class, 'checkBiometrics']);
+    Route::post('/biometric-login', [\App\Http\Controllers\Api\NativeController::class, 'biometricLogin']);
+});
+
+// ─────────────────────────────────────────────
+//  NativePHP Mobile — Authenticated endpoints
+//  These MUST be web routes (not API routes) because
+//  NativePHP's WebView uses session-based cookie auth,
+//  not Sanctum API tokens. Using api.php + auth:sanctum
+//  causes "Unauthenticated" errors.
+// ─────────────────────────────────────────────
+Route::middleware(['auth'])->prefix('native')->group(function () {
+    // Push notifications
+    Route::post('/enroll-notifications', [\App\Http\Controllers\Api\NativeController::class, 'enrollNotifications'])->name('native.enroll-notifications');
+    Route::post('/update-token', [\App\Http\Controllers\Api\NativeController::class, 'updateToken'])->name('native.update-token');
+
+    // Biometric setup (user must be logged in to enable/disable)
+    Route::post('/setup-biometrics', [\App\Http\Controllers\Api\NativeController::class, 'setupBiometrics'])->name('native.setup-biometrics');
+    Route::post('/disable-biometrics', [\App\Http\Controllers\Api\NativeController::class, 'disableBiometrics'])->name('native.disable-biometrics');
+});
+
 require __DIR__.'/settings.php';

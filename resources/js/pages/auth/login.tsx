@@ -1,6 +1,6 @@
 import { Form, Head, Link } from '@inertiajs/react';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
-import { useState } from 'react';
+import { Mail, Lock, Eye, EyeOff, Fingerprint, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +19,65 @@ type Props = {
 
 export default function Login({ status, canResetPassword, canRegister }: Props) {
     const [showPassword, setShowPassword] = useState(false);
+    const [biometricAvailable, setBiometricAvailable] = useState(false);
+    const [biometricLoading, setBiometricLoading] = useState(false);
+    const [biometricError, setBiometricError] = useState<string | null>(null);
+
+    const [autoPrompted, setAutoPrompted] = useState(false);
+
+    // Get the CSRF token from the cookie
+    const getCsrfToken = () => {
+        const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
+        if (match) return decodeURIComponent(match[1]);
+        const metaTag = document.querySelector('meta[name="csrf-token"]');
+        if (metaTag) return metaTag.getAttribute('content') || '';
+        return '';
+    };
+
+    const handleBiometricLogin = async () => {
+        setBiometricLoading(true);
+        setBiometricError(null);
+
+        try {
+            const response = await fetch('/native/biometric-login', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-XSRF-TOKEN': getCsrfToken()
+                },
+                credentials: 'same-origin'
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.redirect) {
+                window.location.href = data.redirect;
+            } else {
+                setBiometricError(data.message || 'Biometric login failed.');
+            }
+        } catch {
+            setBiometricError('An error occurred during biometric login.');
+        } finally {
+            setBiometricLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (autoPrompted) return;
+        
+        fetch('/native/check-biometrics')
+            .then(res => res.json())
+            .then(data => {
+                if (data.available) {
+                    setBiometricAvailable(true);
+                    setAutoPrompted(true);
+                    // Automatically trigger biometric login
+                    handleBiometricLogin();
+                }
+            })
+            .catch(() => { /* ignore */ });
+    }, [autoPrompted]);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-yellow-400 via-orange-400 to-orange-500 p-4">
@@ -55,6 +114,12 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                 {status && (
                     <div className="mb-4 text-center text-sm font-medium text-green-600">
                         {status}
+                    </div>
+                )}
+
+                {biometricError && (
+                    <div className="mb-4 text-center text-sm font-medium text-red-600 bg-red-50 rounded-lg p-3">
+                        {biometricError}
                     </div>
                 )}
 
@@ -128,6 +193,42 @@ export default function Login({ status, canResetPassword, canRegister }: Props) 
                                 {processing && <Spinner className="mr-2" />}
                                 Sign In
                             </Button>
+
+                            
+                                <Link
+                                    href={register().url}
+                                    className="w-full h-11 flex items-center justify-center text-sm font-semibold text-orange-600 border border-orange-100 rounded-lg hover:bg-orange-50 hover:border-orange-200 transition-all mt-2"
+                                >
+                                    Don't have an account? Register
+                                </Link>
+                            
+
+                            {biometricAvailable && (
+                                <>
+                                    <div className="relative mt-6">
+                                        <div className="absolute inset-0 flex items-center">
+                                            <span className="w-full border-t border-gray-200"></span>
+                                        </div>
+                                        <div className="relative flex justify-center text-xs uppercase">
+                                            <span className="bg-white px-2 text-gray-400">Or</span>
+                                        </div>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={handleBiometricLogin}
+                                        disabled={biometricLoading}
+                                        className="w-full h-11 border-gray-200 hover:bg-orange-50 hover:border-orange-300 flex items-center justify-center gap-2 text-gray-700 font-medium rounded-lg transition-all"
+                                    >
+                                        {biometricLoading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin text-orange-500" />
+                                        ) : (
+                                            <Fingerprint className="w-5 h-5 text-orange-500" />
+                                        )}
+                                        {biometricLoading ? 'Authenticating...' : 'Login with Fingerprint'}
+                                    </Button>
+                                </>
+                            )}
                         </>
                     )}
                 </Form>
