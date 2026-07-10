@@ -103,7 +103,7 @@ export default function Home() {
           setTurnstileToken(null);
 
           const hostname = window.location.hostname;
-          const sitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test') || hostname.endsWith('.pages.dev') || hostname.endsWith('tarragonmanila.com'))
+          const sitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test'))
             ? '1x00000000000000000000AA'
             : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1Q3ruXESY2I_');
 
@@ -383,7 +383,7 @@ export default function Home() {
     const sizeSummary = sizeSummaryParts.join(', ');
 
     const hostname = window.location.hostname;
-    const activeSitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test') || hostname.endsWith('.pages.dev') || hostname.endsWith('tarragonmanila.com'))
+    const activeSitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test'))
       ? '1x00000000000000000000AA'
       : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1Q3ruXESY2I_');
 
