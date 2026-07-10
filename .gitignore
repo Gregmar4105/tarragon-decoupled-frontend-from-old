@@ -1,6 +1,9 @@
 /.phpunit.cache
 /bootstrap/ssr
-/node_modules
+node_modules/
+/frontend/node_modules/
+/frontend/dist/
+/frontend/tsconfig.tsbuildinfo
 /public/build
 /public/hot
 /public/storage

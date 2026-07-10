@@ -3,12 +3,13 @@
 namespace App\Providers;
 
 use App\Models\AuditTrail;
+use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
-use Illuminate\Support\Facades\Event;
-use Carbon\CarbonImmutable;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -28,6 +29,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Custom password reset URL for decoupled React app
+        ResetPassword::createUrlUsing(function ($user, string $token) {
+            $frontendUrl = env('FRONTEND_URL', 'http://localhost:3000');
+
+            return $frontendUrl.'/reset-password/'.$token.'?email='.urlencode($user->email);
+        });
 
         Event::listen(Login::class, function (Login $event) {
             AuditTrail::create([
