@@ -356,3 +356,45 @@ test('admin can manage bookings', function () {
             ],
         ]);
 });
+
+test('admin can fetch activities', function () {
+    $user = User::create([
+        'name' => 'Admin User',
+        'email' => 'admin_test@example.com',
+        'password' => Hash::make('password123'),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    // Make an online booking to generate some audit logs
+    $this->postJson('/api/v1/bookings/public', [
+        'name' => 'Guest User',
+        'email' => 'guest@example.com',
+        'phone' => '1234567890',
+        'dropoff' => '2026-07-10 10:00',
+        'pickup' => '2026-07-10 18:00',
+        'price' => 200,
+        'size_counts' => [
+            'small' => 0,
+            'regular' => 2,
+            'large' => 0,
+            'plus' => 0,
+        ],
+    ]);
+
+    $response = $this->getJson('/api/v1/reports/activities');
+    $response->assertStatus(200)
+        ->assertJsonStructure([
+            'data' => [
+                '*' => [
+                    'id',
+                    'user_name',
+                    'event',
+                    'activity',
+                    'created_at',
+                    'ip_address',
+                    'type',
+                ],
+            ],
+        ]);
+});

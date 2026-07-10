@@ -56,6 +56,7 @@ Route::prefix('v1')->group(function () {
         // Reports & Analytics management
         Route::get('/reports', [ReportApiController::class, 'index']);
         Route::get('/reports/export', [ReportApiController::class, 'export']);
+        Route::get('/reports/activities', [ReportApiController::class, 'activities']);
         Route::post('/reports/ai-analyze', [AnalyticsController::class, 'analyze']);
 
         // Transactions management

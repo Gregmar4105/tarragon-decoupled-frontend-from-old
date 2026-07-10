@@ -101,6 +101,8 @@ export default function Dashboard() {
 
   // ─── Interactive React States for Mock Data ───────────────────────
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
+  const [activitiesLoading, setActivitiesLoading] = useState<boolean>(true);
 
   const fetchBookings = async () => {
     try {
@@ -111,9 +113,163 @@ export default function Dashboard() {
     }
   };
 
+  const fetchActivities = async () => {
+    try {
+      setActivitiesLoading(true);
+      const response = await api.get('/reports/activities');
+      setActivities(response.data.data);
+    } catch (err) {
+      console.error('Failed to fetch activities:', err);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
+    fetchActivities();
   }, []);
+
+  const formatTimeAgo = (dateStr: string) => {
+    try {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (seconds < 5) return 'just now';
+      if (seconds < 60) return `${seconds}s ago`;
+      const minutes = Math.floor(seconds / 60);
+      if (minutes < 60) return `${minutes}m ago`;
+      const hours = Math.floor(minutes / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 7) return `${days}d ago`;
+      
+      return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const getActivityIcon = (activity: any) => {
+    switch (activity.event) {
+      case 'login':
+        return {
+          icon: <User size={16} />,
+          bg: 'rgba(59, 130, 246, 0.1)',
+          color: '#3b82f6',
+        };
+      case 'logout':
+        return {
+          icon: <User size={16} />,
+          bg: 'rgba(107, 114, 128, 0.1)',
+          color: '#6b7280',
+        };
+      case 'created':
+        if (activity.type === 'Booking') {
+          return {
+            icon: <Calendar size={16} />,
+            bg: 'rgba(16, 185, 129, 0.1)',
+            color: '#10b981',
+          };
+        } else if (activity.type === 'Transaction') {
+          return {
+            icon: <CreditCard size={16} />,
+            bg: 'rgba(139, 92, 246, 0.1)',
+            color: '#8b5cf6',
+          };
+        }
+        return {
+          icon: <Plus size={16} />,
+          bg: 'rgba(59, 130, 246, 0.1)',
+          color: '#3b82f6',
+        };
+      case 'updated':
+        if (activity.type === 'Booking') {
+          if (activity.status === 'checked-in') {
+            return {
+              icon: <CheckCircle2 size={16} />,
+              bg: 'rgba(16, 185, 129, 0.1)',
+              color: '#10b981',
+            };
+          } else if (activity.status === 'checked-out') {
+            return {
+              icon: <CheckCircle2 size={16} />,
+              bg: 'rgba(59, 130, 246, 0.1)',
+              color: '#3b82f6',
+            };
+          } else if (activity.status === 'cancelled') {
+            return {
+              icon: <AlertCircle size={16} />,
+              bg: 'rgba(239, 68, 68, 0.1)',
+              color: '#ef4444',
+            };
+          }
+        }
+        return {
+          icon: <Activity size={16} />,
+          bg: 'rgba(245, 158, 11, 0.1)',
+          color: '#f59e0b',
+        };
+      default:
+        return {
+          icon: <Activity size={16} />,
+          bg: 'rgba(107, 114, 128, 0.1)',
+          color: '#6b7280',
+        };
+    }
+  };
+
+  const getActivityText = (activity: any) => {
+    let title = activity.activity;
+    let detail = `By ${activity.user_name}`;
+
+    if (activity.event === 'login') {
+      title = `${activity.user_name} Logged In`;
+      detail = `IP: ${activity.ip_address}`;
+    } else if (activity.event === 'logout') {
+      title = `${activity.user_name} Logged Out`;
+      detail = `IP: ${activity.ip_address}`;
+    } else if (activity.type === 'Booking') {
+      const ref = activity.booking_reference || 'N/A';
+      const name = activity.customer_name || 'Customer';
+      const bags = activity.bags ? `${activity.bags} ${activity.bags === 1 ? 'Bag' : 'Bags'}` : '';
+
+      if (activity.event === 'created') {
+        title = `Booking Confirmed: ${name}`;
+        detail = `${ref} ${bags ? `• ${bags}` : ''}`;
+      } else if (activity.event === 'updated') {
+        if (activity.status === 'checked-in') {
+          title = `Check-in Confirmed: ${name}`;
+          detail = `${ref} ${bags ? `• ${bags}` : ''}`;
+        } else if (activity.status === 'checked-out') {
+          title = `Luggage Retrieved: ${name}`;
+          detail = `${ref} ${bags ? `• ${bags}` : ''}`;
+        } else if (activity.status === 'cancelled') {
+          title = `Booking Cancelled: ${name}`;
+          detail = `${ref} ${bags ? `• ${bags}` : ''}`;
+        } else {
+          title = `Booking Updated: ${name}`;
+          detail = `${ref} • Status: ${activity.status}`;
+        }
+      }
+    } else if (activity.type === 'Transaction') {
+      const ref = activity.transaction_reference || 'N/A';
+      const name = activity.customer_name || 'Customer';
+      const amount = activity.amount ? `₱${activity.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}` : '';
+      const method = activity.payment_method ? activity.payment_method.toUpperCase() : 'CASH';
+
+      if (activity.event === 'created') {
+        title = `Payment Received: ${amount} ${method}`;
+        detail = `${ref} • ${name}`;
+      } else if (activity.event === 'updated') {
+        title = `Transaction Updated: ${ref}`;
+        detail = `${amount} ${method} • Status: ${activity.status}`;
+      }
+    }
+
+    return { title, detail };
+  };
 
   // ─── Dynamic Reports & AI Insights State ───────────────────────
   const [reportsData, setReportsData] = useState<any>(null);
@@ -186,6 +342,7 @@ export default function Dashboard() {
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'completed' } : b));
         setSelectedBooking(prev => prev && prev.id === id ? { ...prev, status: 'completed' } : prev);
         toast.success(`Booking ${id} is now checked out (completed).`);
+        fetchActivities();
       } catch (err) {
         toast.error('Failed to check out booking.');
         console.error(err);
@@ -363,6 +520,7 @@ export default function Dashboard() {
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'checked-in' } : b));
         setSelectedBooking(prev => prev && prev.id === id ? { ...prev, status: 'checked-in' } : prev);
         toast.success(`Booking ${id} is now checked in.`);
+        fetchActivities();
       } catch (err) {
         toast.error('Failed to check in booking.');
         console.error(err);
@@ -377,6 +535,7 @@ export default function Dashboard() {
         await api.put(`/bookings/${id}`, { status: 'cancelled' });
         setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'cancelled' } : b));
         toast.warning(`Booking ${id} has been cancelled.`);
+        fetchActivities();
       } catch (err) {
         toast.error('Failed to cancel booking.');
         console.error(err);
@@ -414,6 +573,12 @@ export default function Dashboard() {
   const completedCount = bookings.filter(b => b.status === 'completed').length;
   const totalRevenue = bookings.filter(b => b.payment_status === 'successful').reduce((acc, curr) => acc + curr.price, 0);
 
+  const maxCapacity = 20;
+  const occupiedLockers = bookings
+    .filter(b => b.status === 'checked-in')
+    .reduce((sum, b) => sum + b.bags, 0);
+  const occupancyRate = maxCapacity > 0 ? Math.min(100, Math.round((occupiedLockers / maxCapacity) * 100)) : 0;
+
   const stats = [
     { id: 'account', icon: <User size={20} />, label: 'Account', value: user?.name || '—', color: 'pink' },
     { id: user?.two_factor_enabled ? '2fa-enabled' : '2fa-disabled', icon: <Shield size={20} />, label: '2FA Status', value: user?.two_factor_enabled ? 'Enabled' : 'Disabled', color: user?.two_factor_enabled ? 'green' : 'orange' },
@@ -439,7 +604,7 @@ export default function Dashboard() {
                 </div>
                 <div className="banner-stat-divider"></div>
                 <div className="banner-stat-item">
-                  <span className="banner-stat-num">85%</span>
+                  <span className="banner-stat-num">{occupancyRate}%</span>
                   <span className="banner-stat-lbl">Locker Occupancy</span>
                 </div>
                 <div className="banner-stat-divider"></div>
@@ -480,11 +645,11 @@ export default function Dashboard() {
               
               <div className="occupancy-progress-container" style={{ marginBottom: '1rem' }}>
                 <div className="progress-labels" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem' }}>
-                  <span>17 / 20 Large Lockers Used</span>
-                  <span style={{ color: 'var(--color-primary)' }}>85% Capacity</span>
+                  <span>{occupiedLockers} / {maxCapacity} Lockers Used</span>
+                  <span style={{ color: 'var(--color-primary)' }}>{occupancyRate}% Capacity</span>
                 </div>
                 <div className="progress-track" style={{ width: '100%', height: '10px', background: 'var(--bg-secondary)', borderRadius: '10px', overflow: 'hidden' }}>
-                  <div className="progress-bar-fill" style={{ width: '85%', height: '100%', background: 'linear-gradient(90deg, var(--color-primary), #ff7a93)', borderRadius: '10px' }}></div>
+                  <div className="progress-bar-fill" style={{ width: `${occupancyRate}%`, height: '100%', background: 'linear-gradient(90deg, var(--color-primary), #ff7a93)', borderRadius: '10px' }}></div>
                 </div>
               </div>
 
@@ -492,14 +657,14 @@ export default function Dashboard() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'rgba(255, 56, 92, 0.05)', borderRadius: '8px', border: '1px solid rgba(255, 56, 92, 0.1)' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-primary)' }}></span>
                   <div>
-                    <strong>17 Reserved</strong>
+                    <strong>{occupiedLockers} Reserved</strong>
                     <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Bags safely locked</p>
                   </div>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--bg-secondary)', borderRadius: '8px', border: '1px solid var(--border)' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--text-muted)' }}></span>
                   <div>
-                    <strong>3 Available</strong>
+                    <strong>{Math.max(0, maxCapacity - occupiedLockers)} Available</strong>
                     <p style={{ fontSize: '0.7rem', color: 'var(--text-secondary)' }}>Ready for check-in</p>
                   </div>
                 </div>
@@ -512,46 +677,36 @@ export default function Dashboard() {
                 <Clock size={18} style={{ color: '#3b82f6' }} />
                 Recent Operations Feed
               </h3>
-              <div className="activities-feed" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className="activity-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div className="activity-icon-wrapper" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '6px', borderRadius: '50%', display: 'flex' }}>
-                    <CheckCircle2 size={16} />
+              <div className="activities-feed" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '200px', overflowY: 'auto', paddingRight: '4px' }}>
+                {activitiesLoading ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 0', color: 'var(--text-muted)' }}>
+                    <Loader2 className="spin-animation" size={20} style={{ marginRight: '8px' }} />
+                    <span style={{ fontSize: '0.85rem' }}>Loading recent operations...</span>
                   </div>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>Check-in Confirmed: Michael Chen</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TM-9421 • 2 Bags • 10 mins ago</span>
+                ) : activities.length > 0 ? (
+                  activities.map((act) => {
+                    const iconStyle = getActivityIcon(act);
+                    const text = getActivityText(act);
+                    const timeAgo = formatTimeAgo(act.created_at);
+                    
+                    return (
+                      <div key={act.id} className="activity-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                        <div className="activity-icon-wrapper" style={{ background: iconStyle.bg, color: iconStyle.color, padding: '6px', borderRadius: '50%', display: 'flex' }}>
+                          {iconStyle.icon}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text.title}</span>
+                          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{text.detail} {timeAgo && `• ${timeAgo}`}</span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '2rem 0', color: 'var(--text-muted)' }}>
+                    <ShieldAlert size={24} style={{ marginBottom: '8px', opacity: 0.5 }} />
+                    <span style={{ fontSize: '0.85rem' }}>No recent activities logged.</span>
                   </div>
-                </div>
-                
-                <div className="activity-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div className="activity-icon-wrapper" style={{ background: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6', padding: '6px', borderRadius: '50%', display: 'flex' }}>
-                    <CreditCard size={16} />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>Payment Received: ₱870 GCash</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TXN-87611 • Patricia Alunan • 2 hours ago</span>
-                  </div>
-                </div>
-
-                <div className="activity-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div className="activity-icon-wrapper" style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '6px', borderRadius: '50%', display: 'flex' }}>
-                    <Key size={16} />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>Luggage Retrieved: David Miller</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TM-1102 • 3 Bags • 4 hours ago</span>
-                  </div>
-                </div>
-
-                <div className="activity-item" style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
-                  <div className="activity-icon-wrapper" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '6px', borderRadius: '50%', display: 'flex' }}>
-                    <AlertCircle size={16} />
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '0.85rem', fontWeight: 700, display: 'block' }}>Booking Cancelled: Hiroshi Tanaka</span>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>TM-5520 • 4 Bags • 1 day ago</span>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </div>
