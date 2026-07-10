@@ -105,7 +105,7 @@ export default function Home() {
           const hostname = window.location.hostname;
           const sitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test'))
             ? '1x00000000000000000000AA'
-            : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1R9Dkw8rU7j0yromhgpzb6Y');
+            : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1Q3ruXESY2I_');
 
           console.log(`Turnstile: rendering widget for hostname "${hostname}" using sitekey "${sitekey}"`);
 
@@ -385,7 +385,7 @@ export default function Home() {
     const hostname = window.location.hostname;
     const activeSitekey = (hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.test'))
       ? '1x00000000000000000000AA'
-      : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1R9Dkw8rU7j0yromhgpzb6Y');
+      : (import.meta.env.VITE_TURNSTILE_SITE_KEY || '0x4AAAAAADot1Q3ruXESY2I_');
 
     const payload = {
       name: custName.trim(),
