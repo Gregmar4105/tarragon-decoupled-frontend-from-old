@@ -305,7 +305,7 @@ function EmailTab() {
   const [mailEncryption, setMailEncryption] = useState('');
   const [mailFromAddress, setMailFromAddress] = useState('');
   const [mailFromName, setMailFromName] = useState('');
-  const [testRecipientEmail, setTestRecipientEmail] = useState('');
+  const [testRecipientEmail, setTestRecipientEmail] = useState('gregmarresurreccion4105@gmail.com');
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
