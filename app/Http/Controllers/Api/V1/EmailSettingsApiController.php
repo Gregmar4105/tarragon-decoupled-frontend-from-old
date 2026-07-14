@@ -71,6 +71,7 @@ class EmailSettingsApiController extends Controller
             'mail_encryption' => 'nullable|string',
             'mail_from_address' => 'required|email',
             'mail_from_name' => 'required|string',
+            'recipient_email' => 'nullable|email',
         ]);
 
         try {
@@ -86,11 +87,11 @@ class EmailSettingsApiController extends Controller
             Config::set('mail.from.address', $validated['mail_from_address']);
             Config::set('mail.from.name', $validated['mail_from_name']);
 
-            // Attempt to send a test email to the current user
-            $user = $request->user();
-
-            Mail::raw('This is a test email to verify your SMTP settings for Tarragon.', function ($message) use ($user) {
-                $message->to($user->email)
+            // Attempt to send a test email to the specified recipient or the current user
+            $recipient = $validated['recipient_email'] ?? $request->user()->email;
+            
+            Mail::raw('This is a test email to verify your SMTP settings for Tarragon.', function ($message) use ($recipient) {
+                $message->to($recipient)
                     ->subject('Tarragon SMTP Test');
             });
 
@@ -99,7 +100,7 @@ class EmailSettingsApiController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Successfully sent a test email to '.$user->email,
+                'message' => 'Successfully sent a test email to ' . $recipient,
             ]);
         } catch (\Exception $e) {
             return response()->json([

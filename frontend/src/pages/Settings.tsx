@@ -305,6 +305,7 @@ function EmailTab() {
   const [mailEncryption, setMailEncryption] = useState('');
   const [mailFromAddress, setMailFromAddress] = useState('');
   const [mailFromName, setMailFromName] = useState('');
+  const [testRecipientEmail, setTestRecipientEmail] = useState('');
 
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -370,6 +371,7 @@ function EmailTab() {
         mail_encryption: mailEncryption,
         mail_from_address: mailFromAddress,
         mail_from_name: mailFromName,
+        recipient_email: testRecipientEmail || undefined,
       });
       setMessage(response.data.message || 'Test email sent successfully.');
     } catch (err: unknown) {
@@ -440,6 +442,21 @@ function EmailTab() {
           <div className="form-group">
             <label htmlFor="mail-from-name">Sender Name (From Name)</label>
             <input id="mail-from-name" type="text" value={mailFromName} onChange={(e) => setMailFromName(e.target.value)} placeholder="Tarragon Manila" />
+          </div>
+        </div>
+
+        <div style={{ borderTop: '1px solid var(--border, #e4e4e7)', marginTop: '2rem', paddingTop: '1.5rem' }}>
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-primary, #09090b)' }}>Test Configuration</h3>
+          <p className="settings-description" style={{ marginBottom: '1rem' }}>Send a test email to verify that your SMTP setup works correctly.</p>
+          <div className="form-group" style={{ maxWidth: '400px' }}>
+            <label htmlFor="test-recipient">Recipient Email Address</label>
+            <input 
+              id="test-recipient" 
+              type="email" 
+              value={testRecipientEmail} 
+              onChange={(e) => setTestRecipientEmail(e.target.value)} 
+              placeholder="gregmarresurreccion4105@gmail.com" 
+            />
           </div>
         </div>
 
