@@ -1,7 +1,7 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/axios';
-import { Settings as SettingsIcon, User, Lock, Shield, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Settings as SettingsIcon, User, Lock, Shield, AlertCircle, CheckCircle2, Mail } from 'lucide-react';
 
 /**
  * Settings Page
@@ -10,7 +10,7 @@ import { Settings as SettingsIcon, User, Lock, Shield, AlertCircle, CheckCircle2
  */
 export default function Settings() {
   const { user, refreshUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile' | 'password' | 'security' | 'email'>('profile');
 
   return (
     <div className="settings-page">
@@ -45,6 +45,13 @@ export default function Settings() {
           <Shield size={18} />
           Security
         </button>
+        <button
+          className={`tab ${activeTab === 'email' ? 'active' : ''}`}
+          onClick={() => setActiveTab('email')}
+        >
+          <Mail size={18} />
+          Email Setup
+        </button>
       </div>
 
       {/* ─── Tab Content ─────────────────────────────────────────── */}
@@ -52,6 +59,7 @@ export default function Settings() {
         {activeTab === 'profile' && <ProfileTab user={user} onUpdate={refreshUser} />}
         {activeTab === 'password' && <PasswordTab />}
         {activeTab === 'security' && <SecurityTab user={user} onUpdate={refreshUser} />}
+        {activeTab === 'email' && <EmailTab />}
       </div>
     </div>
   );
@@ -284,6 +292,174 @@ function SecurityTab({ user, onUpdate }: { user: ReturnType<typeof useAuth>['use
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Email Setup Tab ──────────────────────────────────────────────────
+function EmailTab() {
+  const [mailHost, setMailHost] = useState('');
+  const [mailPort, setMailPort] = useState('');
+  const [mailUsername, setMailUsername] = useState('');
+  const [mailPassword, setMailPassword] = useState('');
+  const [mailEncryption, setMailEncryption] = useState('');
+  const [mailFromAddress, setMailFromAddress] = useState('');
+  const [mailFromName, setMailFromName] = useState('');
+
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const response = await api.get('/settings/email');
+        const settings = response.data.settings;
+        setMailHost(settings.mail_host || '');
+        setMailPort(settings.mail_port || '');
+        setMailUsername(settings.mail_username || '');
+        setMailPassword(settings.mail_password || '');
+        setMailEncryption(settings.mail_encryption || '');
+        setMailFromAddress(settings.mail_from_address || '');
+        setMailFromName(settings.mail_from_name || '');
+      } catch (err: unknown) {
+        const axiosError = err as { response?: { data?: { message?: string } } };
+        setError(axiosError.response?.data?.message || 'Failed to load email settings.');
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setMessage('');
+    setError('');
+    setIsSubmitting(true);
+
+    try {
+      const response = await api.put('/settings/email', {
+        mail_host: mailHost,
+        mail_port: mailPort,
+        mail_username: mailUsername,
+        mail_password: mailPassword,
+        mail_encryption: mailEncryption,
+        mail_from_address: mailFromAddress,
+        mail_from_name: mailFromName,
+      });
+      setMessage(response.data.message || 'Email settings saved successfully.');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } };
+      setError(axiosError.response?.data?.message || 'Failed to save email settings.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    setMessage('');
+    setError('');
+    setIsTesting(true);
+
+    try {
+      const response = await api.post('/settings/email/test', {
+        mail_host: mailHost,
+        mail_port: mailPort,
+        mail_username: mailUsername,
+        mail_password: mailPassword,
+        mail_encryption: mailEncryption,
+        mail_from_address: mailFromAddress,
+        mail_from_name: mailFromName,
+      });
+      setMessage(response.data.message || 'Test email sent successfully.');
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { error?: string; message?: string } } };
+      setError(axiosError.response?.data?.error || axiosError.response?.data?.message || 'Failed to send test email.');
+    } finally {
+      setIsTesting(false);
+    }
+  };
+
+  return (
+    <div className="settings-card">
+      <h2>Email Configuration</h2>
+      <p className="settings-description">Configure the SMTP settings for outbound emails and system notifications.</p>
+
+      {message && <div className="alert alert-success"><CheckCircle2 size={18} /><span>{message}</span></div>}
+      {error && <div className="alert alert-error"><AlertCircle size={18} /><span>{error}</span></div>}
+
+      <form onSubmit={handleSubmit} className="settings-form">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-group">
+            <label htmlFor="mail-host">SMTP Host</label>
+            <input id="mail-host" type="text" value={mailHost} onChange={(e) => setMailHost(e.target.value)} placeholder="smtp.mailtrap.io" />
+          </div>
+          <div className="form-group">
+            <label htmlFor="mail-port">SMTP Port</label>
+            <input id="mail-port" type="text" value={mailPort} onChange={(e) => setMailPort(e.target.value)} placeholder="2525" />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-group">
+            <label htmlFor="mail-username">SMTP Username</label>
+            <input id="mail-username" type="text" value={mailUsername} onChange={(e) => setMailUsername(e.target.value)} placeholder="username" />
+          </div>
+          <div className="form-group">
+            <label htmlFor="mail-password">SMTP Password</label>
+            <input id="mail-password" type="password" value={mailPassword} onChange={(e) => setMailPassword(e.target.value)} placeholder="••••••••" />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="mail-encryption">Encryption</label>
+          <select 
+            id="mail-encryption" 
+            value={mailEncryption} 
+            onChange={(e) => setMailEncryption(e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.75rem',
+              borderRadius: 'var(--radius-lg, 8px)',
+              border: '1px solid var(--border, #e4e4e7)',
+              backgroundColor: 'var(--bg-primary, #ffffff)',
+              color: 'var(--text-primary, #09090b)',
+            }}
+          >
+            <option value="">None (Clear Text)</option>
+            <option value="tls">TLS</option>
+            <option value="ssl">SSL</option>
+          </select>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+          <div className="form-group">
+            <label htmlFor="mail-from-address">Sender Email (From Address)</label>
+            <input id="mail-from-address" type="email" value={mailFromAddress} onChange={(e) => setMailFromAddress(e.target.value)} placeholder="noreply@tarragonmanila.com" />
+          </div>
+          <div className="form-group">
+            <label htmlFor="mail-from-name">Sender Name (From Name)</label>
+            <input id="mail-from-name" type="text" value={mailFromName} onChange={(e) => setMailFromName(e.target.value)} placeholder="Tarragon Manila" />
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem' }}>
+          <button type="submit" className="btn btn-primary" disabled={isSubmitting || isTesting}>
+            {isSubmitting ? 'Saving...' : 'Save Settings'}
+          </button>
+          <button type="button" className="btn btn-secondary" onClick={handleTestConnection} disabled={isSubmitting || isTesting} style={{
+            backgroundColor: 'transparent',
+            border: '1px solid var(--border, #e4e4e7)',
+            color: 'var(--text-primary, #09090b)',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 'var(--radius-lg, 8px)',
+            cursor: 'pointer',
+            fontWeight: 500,
+          }}>
+            {isTesting ? 'Testing...' : 'Test Connection'}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

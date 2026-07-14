@@ -3,30 +3,33 @@
 namespace App\Services;
 
 use App\Mail\BookingConfirmation;
+use App\Mail\NewBookingOwnerMail;
 use App\Models\Booking;
 use App\Models\User;
 use App\Notifications\NewOnlineBookingNotification;
+use Carbon\Carbon;
+use Exception;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-use Exception;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 
 class BookingService
 {
     /**
      * Create a new booking.
      *
-     * @param array $data Validated request data
-     * @param string $source The source of the booking (admin vs online)
-     * @return Booking
+     * @param  array  $data  Validated request data
+     * @param  string  $source  The source of the booking (admin vs online)
+     *
      * @throws Exception
      */
     public function createBooking(array $data, string $source): Booking
     {
         return DB::transaction(function () use ($data, $source) {
             $booking = $this->storeBookingRecord($data, $source);
-            
+
             $this->storeBookingItems($booking, $data['items']);
             $this->storeInitialTransaction($booking, $data['total_price']);
 
@@ -42,8 +45,15 @@ class BookingService
             // Send confirmation email to client
             try {
                 Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
-            } catch (\Exception $e) {
-                \Illuminate\Support\Facades\Log::error('Failed to send booking confirmation email: ' . $e->getMessage());
+            } catch (Exception $e) {
+                Log::error('Failed to send booking confirmation email: '.$e->getMessage());
+            }
+
+            // Send notification email to owner
+            try {
+                Mail::to('tarragonmanila@gmail.com')->send(new NewBookingOwnerMail($booking));
+            } catch (Exception $e) {
+                Log::error('Failed to send owner booking notification: '.$e->getMessage());
             }
 
             if ($source !== 'admin') {
@@ -57,15 +67,13 @@ class BookingService
     /**
      * Update an existing booking.
      *
-     * @param Booking $booking
-     * @param array $data Validated update data
-     * @return Booking
+     * @param  array  $data  Validated update data
      */
     public function updateBooking(Booking $booking, array $data): Booking
     {
         return DB::transaction(function () use ($booking, $data) {
             $oldStatus = $booking->status;
-            
+
             $this->updateBookingDetails($booking, $data);
 
             if (isset($data['bags'])) {
@@ -98,8 +106,8 @@ class BookingService
             if ($oldStatus !== $booking->status) {
                 try {
                     Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
-                } catch (\Exception $e) {
-                    \Illuminate\Support\Facades\Log::error('Failed to send status update email: ' . $e->getMessage());
+                } catch (Exception $e) {
+                    Log::error('Failed to send status update email: '.$e->getMessage());
                 }
             }
 
@@ -112,10 +120,10 @@ class BookingService
      */
     private function storeBookingRecord(array $data, string $source): Booking
     {
-        // Require a valid plan to exist in the database. 
+        // Require a valid plan to exist in the database.
         $plan = DB::table('plans')->where('is_active', 1)->first();
-        if (!$plan) {
-            throw new Exception("No active pricing plan found. Please set up a plan first.");
+        if (! $plan) {
+            throw new Exception('No active pricing plan found. Please set up a plan first.');
         }
 
         $bookingData = [
@@ -129,16 +137,16 @@ class BookingService
             'status' => $source === 'admin' ? 'checked-in' : 'pending',
             'payment_status' => 'pending',
             'source' => $source === 'admin' ? 'walk-in' : 'online',
-            'booking_reference' => 'BK' . strtoupper(uniqid()),
+            'booking_reference' => 'BK'.strtoupper(uniqid()),
             'tag_number' => $data['tag_number'] ?? null,
         ];
 
-        // Assign default branch 
-        if (\Illuminate\Support\Facades\Schema::hasColumn('bookings', 'branch_id')) {
+        // Assign default branch
+        if (Schema::hasColumn('bookings', 'branch_id')) {
             $bookingData['branch_id'] = 1;
         }
 
-        $booking = new Booking();
+        $booking = new Booking;
         $booking->forceFill($bookingData);
         $booking->save();
 
@@ -154,13 +162,13 @@ class BookingService
             'Small Bag' => $items['small'] ?? 0,
             'Medium Bag' => $items['medium'] ?? 0,
             'Large Bag' => $items['large'] ?? 0,
-            'Plus Bag' => $items['plus'] ?? 0
-        ])->filter(fn($count) => $count > 0)
-          ->map(fn($count, $type) => ['item_type' => $type, 'quantity' => $count])
-          ->values()
-          ->toArray();
+            'Plus Bag' => $items['plus'] ?? 0,
+        ])->filter(fn ($count) => $count > 0)
+            ->map(fn ($count, $type) => ['item_type' => $type, 'quantity' => $count])
+            ->values()
+            ->toArray();
 
-        if (!empty($itemsToCreate)) {
+        if (! empty($itemsToCreate)) {
             $booking->items()->createMany($itemsToCreate);
         }
     }
@@ -175,7 +183,7 @@ class BookingService
             'type' => 'payment',
             'status' => 'pending',
             'payment_method' => 'cash',
-            'transaction_reference' => 'TXN' . strtoupper(uniqid()),
+            'transaction_reference' => 'TXN'.strtoupper(uniqid()),
         ]);
     }
 

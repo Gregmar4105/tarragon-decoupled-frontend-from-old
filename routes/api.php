@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\BookingApiController;
 use App\Http\Controllers\Api\ChatController;
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\EmailSettingsApiController;
 use App\Http\Controllers\Api\V1\PlanApiController;
 use App\Http\Controllers\Api\V1\ReportApiController;
 use App\Http\Controllers\Api\V1\TransactionApiController;
@@ -39,6 +40,11 @@ Route::prefix('v1')->group(function () {
         Route::get('/user', [AuthController::class, 'user']);
         Route::put('/user/profile', [AuthController::class, 'updateProfile']);
         Route::put('/user/password', [AuthController::class, 'updatePassword']);
+
+        // Email settings
+        Route::get('/settings/email', [EmailSettingsApiController::class, 'show']);
+        Route::put('/settings/email', [EmailSettingsApiController::class, 'update']);
+        Route::post('/settings/email/test', [EmailSettingsApiController::class, 'testConnection']);
 
         // 2FA Security settings
         Route::post('/auth/two-factor/enable', [AuthController::class, 'enableTwoFactor']);

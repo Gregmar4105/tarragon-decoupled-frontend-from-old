@@ -398,3 +398,66 @@ test('admin can fetch activities', function () {
             ],
         ]);
 });
+
+test('admin can retrieve, update, and test email settings', function () {
+    $user = User::create([
+        'name' => 'Admin User',
+        'email' => 'admin_test@example.com',
+        'password' => Hash::make('password123'),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    // 1. Get settings
+    $response = $this->getJson('/api/v1/settings/email');
+    $response->assertStatus(200)
+        ->assertJsonStructure([
+            'settings' => [
+                'mail_host',
+                'mail_port',
+                'mail_username',
+                'mail_password',
+                'mail_encryption',
+                'mail_from_address',
+                'mail_from_name',
+            ],
+        ]);
+
+    // 2. Update settings
+    $response = $this->putJson('/api/v1/settings/email', [
+        'mail_host' => 'smtp.mailtrap.io',
+        'mail_port' => '2525',
+        'mail_username' => 'test_user',
+        'mail_password' => 'test_pass',
+        'mail_encryption' => 'tls',
+        'mail_from_address' => 'noreply@tarragonmanila.com',
+        'mail_from_name' => 'Tarragon Manila Test',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJson(['message' => 'Email settings updated successfully']);
+
+    $this->assertDatabaseHas('settings', [
+        'key' => 'mail_host',
+        'value' => 'smtp.mailtrap.io',
+    ]);
+
+    // 3. Test connection (should throw validation error if required fields are missing)
+    $response = $this->postJson('/api/v1/settings/email/test', []);
+    $response->assertStatus(422);
+
+    Mail::fake();
+
+    $response = $this->postJson('/api/v1/settings/email/test', [
+        'mail_host' => 'smtp.mailtrap.io',
+        'mail_port' => '2525',
+        'mail_username' => 'test_user',
+        'mail_password' => 'test_pass',
+        'mail_encryption' => 'tls',
+        'mail_from_address' => 'noreply@tarragonmanila.com',
+        'mail_from_name' => 'Tarragon Manila Test',
+    ]);
+
+    $response->assertStatus(200)
+        ->assertJsonStructure(['success', 'message']);
+});
