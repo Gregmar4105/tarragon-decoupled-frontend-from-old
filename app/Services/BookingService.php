@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\BookingConfirmation;
+use App\Mail\BookingUpdateOwnerMail;
 use App\Mail\NewBookingOwnerMail;
 use App\Models\Booking;
 use App\Models\User;
@@ -73,6 +74,7 @@ class BookingService
     {
         return DB::transaction(function () use ($booking, $data) {
             $oldStatus = $booking->status;
+            $oldPaymentStatus = $booking->payment_status;
 
             $this->updateBookingDetails($booking, $data);
 
@@ -108,6 +110,31 @@ class BookingService
                     Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
                 } catch (Exception $e) {
                     Log::error('Failed to send status update email: '.$e->getMessage());
+                }
+
+                // Notify owner if status changed to checked-in or checked-out
+                if (in_array($booking->status, ['checked-in', 'checked-out'])) {
+                    try {
+                        $updateType = $booking->status === 'checked-in' ? 'checkin' : 'checkout';
+                        Mail::to('tarragonmanila@gmail.com')->send(new BookingUpdateOwnerMail($booking, $updateType));
+                    } catch (Exception $e) {
+                        Log::error('Failed to send owner status update email: '.$e->getMessage());
+                    }
+                }
+            }
+
+            // Notify both customer and owner if payment_status changed to paid
+            if ($oldPaymentStatus !== $booking->payment_status && $booking->payment_status === 'paid') {
+                try {
+                    Mail::to($booking->customer_email)->send(new BookingConfirmation($booking));
+                } catch (Exception $e) {
+                    Log::error('Failed to send payment confirmation email to customer: '.$e->getMessage());
+                }
+
+                try {
+                    Mail::to('tarragonmanila@gmail.com')->send(new BookingUpdateOwnerMail($booking, 'payment'));
+                } catch (Exception $e) {
+                    Log::error('Failed to send owner payment notification: '.$e->getMessage());
                 }
             }
 

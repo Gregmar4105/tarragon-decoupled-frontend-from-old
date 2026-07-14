@@ -1,8 +1,11 @@
 <?php
 
+use App\Mail\BookingConfirmation;
+use App\Mail\BookingUpdateOwnerMail;
 use App\Models\Booking;
 use App\Models\Plan;
 use App\Models\User;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Sanctum\Sanctum;
 use PragmaRX\Google2FA\Google2FA;
 
@@ -460,4 +463,93 @@ test('admin can retrieve, update, and test email settings', function () {
 
     $response->assertStatus(200)
         ->assertJsonStructure(['success', 'message']);
+});
+
+test('emails are sent to customer and owner on checkin, checkout, and payment success', function () {
+    Mail::fake();
+
+    $user = User::create([
+        'name' => 'Admin User',
+        'email' => 'admin_test@example.com',
+        'password' => Hash::make('password123'),
+    ]);
+
+    Sanctum::actingAs($user);
+
+    // Create a booking
+    $booking = Booking::forceCreate([
+        'plan_id' => 1,
+        'customer_name' => 'Test Customer',
+        'customer_email' => 'customer@example.com',
+        'customer_phone' => '09123456789',
+        'drop_off_time' => now()->addMinutes(10),
+        'pick_up_time' => now()->addHours(2),
+        'total_price' => 100,
+        'status' => 'pending',
+        'payment_status' => 'pending',
+        'booking_reference' => 'BKTEST123',
+    ]);
+
+    $booking->transactions()->create([
+        'amount' => 100,
+        'type' => 'payment',
+        'status' => 'pending',
+        'payment_method' => 'cash',
+        'transaction_reference' => 'TXNTEST123',
+    ]);
+
+    // 1. Update status to checked-in
+    $response = $this->putJson('/api/v1/bookings/BKTEST123', [
+        'status' => 'checked-in',
+    ]);
+
+    $response->assertStatus(200);
+
+    // Booker should receive BookingConfirmation
+    Mail::assertSent(BookingConfirmation::class, function ($mail) {
+        return $mail->hasTo('customer@example.com');
+    });
+
+    // Owner should receive BookingUpdateOwnerMail for checkin
+    Mail::assertSent(BookingUpdateOwnerMail::class, function ($mail) {
+        return $mail->hasTo('tarragonmanila@gmail.com') && $mail->updateType === 'checkin';
+    });
+
+    Mail::fake(); // Reset mail fakes
+
+    // 2. Update payment status to successful (paid)
+    $response = $this->putJson('/api/v1/bookings/BKTEST123', [
+        'payment_status' => 'successful',
+    ]);
+
+    $response->assertStatus(200);
+
+    // Booker should receive BookingConfirmation
+    Mail::assertSent(BookingConfirmation::class, function ($mail) {
+        return $mail->hasTo('customer@example.com');
+    });
+
+    // Owner should receive BookingUpdateOwnerMail for payment
+    Mail::assertSent(BookingUpdateOwnerMail::class, function ($mail) {
+        return $mail->hasTo('tarragonmanila@gmail.com') && $mail->updateType === 'payment';
+    });
+
+    Mail::fake(); // Reset mail fakes
+
+    // 3. Update status to checked-out
+    $response = $this->putJson('/api/v1/bookings/BKTEST123', [
+        'status' => 'checked-out',
+    ]);
+
+    $response->assertStatus(200);
+
+    // Booker should receive BookingConfirmation
+    Mail::assertSent(BookingConfirmation::class, function ($mail) {
+        return $mail->hasTo('customer@example.com');
+    });
+
+    // Owner should receive BookingUpdateOwnerMail for checkout
+    Mail::assertSent(BookingUpdateOwnerMail::class, function ($mail) {
+        return $mail->hasTo('tarragonmanila@gmail.com') && $mail->updateType === 'checkout';
+    });
 });
