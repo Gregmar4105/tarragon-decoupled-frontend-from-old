@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+import { cloudflare } from "@cloudflare/vite-plugin";
+
 // Get parent folder name dynamically
 const getParentFolderName = () => {
   try {
@@ -15,7 +17,7 @@ const folderName = getParentFolderName();
 const fallbackBackendUrl = `http://${folderName}.test`;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), cloudflare()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
