@@ -53,29 +53,41 @@ class BookingConfirmation extends Mailable
         if ($scale < 1) {
             $scale = 1;
         }
-        $imgWidth = $modulesCount * $scale;
-        $imgHeight = $modulesCount * $scale;
+        $size = $modulesCount * $scale;
 
-        $image = imagecreate($imgWidth, $imgHeight);
-        $white = imagecolorallocate($image, 255, 255, 255);
-        $black = imagecolorallocate($image, 0, 0, 0);
+        $pixelData = '';
+        for ($y = 0; $y < $size; $y++) {
+            $pixelData .= "\x00"; // Row filter type 0 (None)
 
-        for ($y = 0; $y < $height; $y++) {
-            for ($x = 0; $x < $width; $x++) {
-                if ($matrix->get($x, $y) === 1) {
-                    $x1 = ($x + $margin) * $scale;
-                    $y1 = ($y + $margin) * $scale;
-                    $x2 = $x1 + $scale - 1;
-                    $y2 = $y1 + $scale - 1;
-                    imagefilledrectangle($image, $x1, $y1, $x2, $y2, $black);
+            $matrixY = (int) floor($y / $scale) - $margin;
+
+            for ($x = 0; $x < $size; $x++) {
+                $matrixX = (int) floor($x / $scale) - $margin;
+
+                $isBlack = false;
+                if ($matrixY >= 0 && $matrixY < $height && $matrixX >= 0 && $matrixX < $width) {
+                    if ($matrix->get($matrixX, $matrixY) === 1) {
+                        $isBlack = true;
+                    }
                 }
+
+                $pixelData .= $isBlack ? "\x00" : "\xff";
             }
         }
 
-        ob_start();
-        imagepng($image);
-        $qrCodePng = ob_get_clean();
-        imagedestroy($image);
+        $compressed = gzcompress($pixelData, 9);
+
+        $qrCodePng = "\x89PNG\r\n\x1a\n";
+
+        // IHDR chunk: 13 bytes
+        $ihdrData = pack('NNCCCCC', $size, $size, 8, 0, 0, 0, 0);
+        $qrCodePng .= pack('N', 13).'IHDR'.$ihdrData.pack('N', crc32('IHDR'.$ihdrData));
+
+        // IDAT chunk
+        $qrCodePng .= pack('N', strlen($compressed)).'IDAT'.$compressed.pack('N', crc32('IDAT'.$compressed));
+
+        // IEND chunk
+        $qrCodePng .= pack('N', 0).'IEND'.pack('N', crc32('IEND'));
 
         return new Content(
             view: 'emails.bookings.confirmation',
