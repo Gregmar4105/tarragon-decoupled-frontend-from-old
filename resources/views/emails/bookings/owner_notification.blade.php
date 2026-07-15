@@ -6,47 +6,49 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>New Booking Notification - Tarragon Manila</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
         body {
-            font-family: 'Instrument Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             line-height: 1.6;
-            color: #1a1a1a;
+            color: #222222;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f5;
+            background-color: #f7f7f7;
         }
 
         .container {
             max-width: 600px;
             margin: 40px auto;
             background: #ffffff;
-            border-radius: 16px;
+            border-radius: 20px;
             overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+            border: 1px solid #ebebeb;
         }
 
         .header {
-            background-color: #f97316;
-            /* Brand Orange */
-            padding: 40px 20px;
+            background-color: #ffffff;
+            padding: 30px 40px;
             text-align: center;
+            border-bottom: 1px solid #ebebeb;
         }
 
         .header h1 {
-            color: #ffffff;
+            color: #ff385c;
             margin: 0;
             font-size: 24px;
-            letter-spacing: 2px;
-            font-weight: 700;
+            letter-spacing: 1.5px;
+            font-weight: 800;
         }
 
         .header p {
-            color: #ffedd5;
-            margin: 10px 0 0;
-            font-size: 14px;
+            color: #6a6a6a;
+            margin: 5px 0 0;
+            font-size: 13px;
+            font-weight: 500;
             text-transform: uppercase;
-            font-weight: 600;
+            letter-spacing: 1px;
         }
 
         .content {
@@ -54,81 +56,93 @@
         }
 
         .notice-card {
-            background-color: #fff7ed;
-            border-left: 4px solid #f97316;
+            background-color: #fff1f2;
+            border-left: 4px solid #ff385c;
             padding: 20px;
-            border-radius: 8px;
+            border-radius: 12px;
             margin-bottom: 30px;
         }
 
         .notice-title {
             font-size: 16px;
             font-weight: 700;
-            color: #ea580c;
+            color: #ff385c;
             margin: 0 0 5px 0;
         }
 
         .notice-desc {
             font-size: 14px;
-            color: #7c2d12;
+            color: #222222;
             margin: 0;
         }
 
         .details-grid {
-            border-top: 1px solid #e5e7eb;
-            border-bottom: 1px solid #e5e7eb;
+            border-top: 1px solid #ebebeb;
+            border-bottom: 1px solid #ebebeb;
             padding: 24px 0;
-            margin-bottom: 40px;
+            margin-bottom: 32px;
         }
 
         .details-row {
             display: flex;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+        }
+
+        .details-row:last-child {
+            margin-bottom: 0;
         }
 
         .details-label {
-            width: 150px;
-            color: #71717a;
-            font-size: 13px;
-            font-weight: 600;
+            width: 140px;
+            color: #6a6a6a;
+            font-size: 12px;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding-top: 2px;
         }
 
         .details-value {
             flex: 1;
             font-size: 15px;
             font-weight: 500;
+            color: #222222;
         }
 
         .item-list {
-            background-color: #f8fafc;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 5px;
+            background-color: #f7f7f7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 6px;
             font-size: 14px;
+            border: 1px solid #ebebeb;
+            color: #222222;
         }
 
         .footer {
             padding: 30px 40px;
             background-color: #fafafa;
+            border-top: 1px solid #ebebeb;
             text-align: center;
             font-size: 12px;
-            color: #a1a1aa;
+            color: #929292;
         }
 
         .footer p {
-            margin: 5px 0;
+            margin: 4px 0;
         }
 
         .button {
             display: inline-block;
-            background-color: #f97316;
-            color: #ffffff;
-            padding: 14px 28px;
+            background-color: #ff385c;
+            color: #ffffff !important;
+            padding: 14px 30px;
             border-radius: 12px;
             text-decoration: none;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 14px;
             margin-top: 10px;
+            box-shadow: 0 2px 8px rgba(255, 56, 92, 0.15);
         }
     </style>
 </head>
@@ -149,7 +163,7 @@
             <div class="details-grid">
                 <div class="details-row">
                     <span class="details-label">Reference</span>
-                    <span class="details-value" style="font-weight: 700;">#{{ $booking->booking_reference }}</span>
+                    <span class="details-value" style="font-weight: 700; color: #222222;">#{{ $booking->booking_reference }}</span>
                 </div>
                 <div class="details-row">
                     <span class="details-label">Source</span>
@@ -158,9 +172,11 @@
                 <div class="details-row">
                     <span class="details-label">Customer</span>
                     <span class="details-value">
-                        <strong>{{ $booking->customer_name }}</strong><br>
-                        Email: {{ $booking->customer_email }}<br>
-                        Phone: {{ $booking->customer_phone ?? 'N/A' }}
+                        <strong style="color: #222222;">{{ $booking->customer_name }}</strong><br>
+                        <span style="color: #6a6a6a; font-size: 13px;">
+                            Email: {{ $booking->customer_email }}<br>
+                            Phone: {{ $booking->customer_phone ?? 'N/A' }}
+                        </span>
                     </span>
                 </div>
                 <div class="details-row">
@@ -188,14 +204,14 @@
                 </div>
                 <div class="details-row">
                     <span class="details-label">Total Amount</span>
-                    <span class="details-value" style="color: #f97316; font-weight: 700; font-size: 18px;">
-                        ₱{{ number_format($booking->total_price * 58, 2) }}
+                    <span class="details-value" style="color: #ff385c; font-weight: 800; font-size: 18px;">
+                        ₱{{ number_format($booking->total_price, 2) }}
                     </span>
                 </div>
             </div>
 
             <div style="text-align: center; margin-bottom: 20px;">
-                <a href="{{ config('app.url') }}/dashboard" class="button" style="color: #ffffff;">Open Admin Dashboard</a>
+                <a href="{{ config('app.url') }}/dashboard" class="button">Open Admin Dashboard</a>
             </div>
         </div>
 

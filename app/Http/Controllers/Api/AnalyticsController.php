@@ -3,19 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Repositories\ReportRepository;
 use App\Models\Setting;
+use App\Repositories\ReportRepository;
+use App\Services\LLMService;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class AnalyticsController extends Controller
 {
     private ReportRepository $repository;
-    private \App\Services\LLMService $llmService;
 
-    public function __construct(ReportRepository $repository, \App\Services\LLMService $llmService)
+    private LLMService $llmService;
+
+    public function __construct(ReportRepository $repository, LLMService $llmService)
     {
         $this->repository = $repository;
         $this->llmService = $llmService;
@@ -44,9 +45,9 @@ class AnalyticsController extends Controller
         $aiModel = $settings['ai_model'] ?? '';
         $aiApiKey = $settings['ai_api_key'] ?? '';
 
-        if (!$aiEndpoint || !$aiModel) {
+        if (! $aiEndpoint || ! $aiModel) {
             return response()->json([
-                'error' => 'AI endpoint is not configured. Please visit Settings → AI Assistant to configure your AI model.'
+                'error' => 'AI endpoint is not configured. Please visit Settings → AI Assistant to configure your AI model.',
             ], 422);
         }
 
@@ -56,7 +57,7 @@ class AnalyticsController extends Controller
         // Build the analytics system prompt
         $systemPrompt = $this->buildAnalyticsPrompt($dataSummary, $startDate, $endDate);
 
-        $userMessage = "Analyze the booking data provided in the system context. Provide a thorough analysis structured into the four sections: Descriptive, Diagnostic, Predictive, and Prescriptive. Be specific, reference actual numbers from the data, and provide actionable insights.";
+        $userMessage = 'Analyze the booking data provided in the system context. Provide a thorough analysis structured into the four sections: Descriptive, Diagnostic, Predictive, and Prescriptive. Be specific, reference actual numbers from the data, and provide actionable insights.';
 
         // Stream the AI response
         return response()->stream(function () use ($aiProvider, $aiEndpoint, $aiModel, $aiApiKey, $systemPrompt, $userMessage) {
@@ -96,13 +97,13 @@ class AnalyticsController extends Controller
 
         // Current period stats
         $totalBookings = $bookings->count();
-        $totalRevenue = $bookings->sum('total_price') * 58;
-        $totalBags = $bookings->sum(fn($b) => $b->items->sum('quantity'));
+        $totalRevenue = $bookings->sum('total_price');
+        $totalBags = $bookings->sum(fn ($b) => $b->items->sum('quantity'));
 
         // Previous period stats
         $prevTotalBookings = $prevBookings->count();
-        $prevTotalRevenue = $prevBookings->sum('total_price') * 58;
-        $prevTotalBags = $prevBookings->sum(fn($b) => $b->items->sum('quantity'));
+        $prevTotalRevenue = $prevBookings->sum('total_price');
+        $prevTotalBags = $prevBookings->sum(fn ($b) => $b->items->sum('quantity'));
 
         // Source distribution
         $onlineCount = $bookings->where('source', 'online')->count();
@@ -125,13 +126,13 @@ class AnalyticsController extends Controller
         $period = CarbonPeriod::create($startDate, $endDate);
         foreach ($period as $date) {
             $key = $date->format('Y-m-d');
-            $dayBookings = $bookings->filter(fn($b) => $b->created_at->format('Y-m-d') === $key);
+            $dayBookings = $bookings->filter(fn ($b) => $b->created_at->format('Y-m-d') === $key);
             $dailyBreakdown[] = [
                 'date' => $key,
                 'day' => $date->format('l'),
                 'bookings' => $dayBookings->count(),
-                'revenue' => round($dayBookings->sum('total_price') * 58, 2),
-                'bags' => $dayBookings->sum(fn($b) => $b->items->sum('quantity')),
+                'revenue' => round($dayBookings->sum('total_price'), 2),
+                'bags' => $dayBookings->sum(fn ($b) => $b->items->sum('quantity')),
             ];
         }
 
